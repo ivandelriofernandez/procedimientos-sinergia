@@ -1,5 +1,6 @@
 import { logoutUser, watchAuthState } from "./auth.js";
 import { createProcedure } from "./firestore.js";
+import { initImageResizer } from "./image-resizer.js";
 
 const logoutBtn        = document.getElementById("logoutBtn");
 const saveProcedureBtn = document.getElementById("saveProcedureBtn");
@@ -8,20 +9,22 @@ const docNameDisplay   = document.getElementById("docNameDisplay");
 const titleInput       = document.getElementById("title");
 const saveMessage      = document.getElementById("saveMessage");
 
-// Actualiza nombre del documento en la topbar
+/* Actualiza nombre del documento en la topbar */
 if (titleInput && docNameDisplay) {
   titleInput.addEventListener("input", () => {
-    const val = titleInput.value.trim();
-    docNameDisplay.textContent = val || "Nuevo procedimiento";
+    docNameDisplay.textContent = titleInput.value.trim() || "Nuevo procedimiento";
   });
 }
 
-// Inicializar Quill con la toolbar del ribbon del HTML
+/* Quill — toolbar vinculada al ribbon del HTML */
 const quill = new Quill("#stepsEditor", {
   theme: "snow",
   placeholder: "Escribe aquí los pasos del procedimiento…",
   modules: { toolbar: "#quillToolbar" }
 });
+
+/* Image resizer */
+initImageResizer(quill);
 
 function isEditorEmpty() {
   return !quill.getText().trim() && !quill.root.querySelector("img");
@@ -34,7 +37,7 @@ function showSaveMessage(text, isError = false) {
     ? "word-save-message word-save-message--error"
     : "word-save-message word-save-message--ok";
   saveMessage.hidden = false;
-  setTimeout(() => { saveMessage.hidden = true; }, 4000);
+  setTimeout(() => { saveMessage.hidden = true; }, 4500);
 }
 
 async function handleSave() {
@@ -44,22 +47,9 @@ async function handleSave() {
   const stepsHtml   = quill.root.innerHTML.trim();
   const documentUrl = document.getElementById("documentUrl")?.value.trim() || "";
 
-  if (!title) {
-    showSaveMessage("El título es obligatorio.", true);
-    titleInput?.focus();
-    return;
-  }
-
-  if (!description) {
-    showSaveMessage("La descripción es obligatoria.", true);
-    document.getElementById("description")?.focus();
-    return;
-  }
-
-  if (isEditorEmpty()) {
-    showSaveMessage("Los pasos son obligatorios.", true);
-    return;
-  }
+  if (!title)          { showSaveMessage("El título es obligatorio.", true); titleInput?.focus(); return; }
+  if (!description)    { showSaveMessage("La descripción es obligatoria.", true); document.getElementById("description")?.focus(); return; }
+  if (isEditorEmpty()) { showSaveMessage("Los pasos son obligatorios.", true); return; }
 
   if (saveProcedureBtn) {
     saveProcedureBtn.disabled = true;
@@ -73,7 +63,8 @@ async function handleSave() {
     if (saveProcedureBtn) {
       saveProcedureBtn.disabled = false;
       saveProcedureBtn.innerHTML = `
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
           <polyline points="17 21 17 13 7 13 7 21"/>
           <polyline points="7 3 7 8 15 8"/>
@@ -85,9 +76,7 @@ async function handleSave() {
   window.location.href = "./app.html";
 }
 
-if (saveProcedureBtn) {
-  saveProcedureBtn.addEventListener("click", handleSave);
-}
+if (saveProcedureBtn) saveProcedureBtn.addEventListener("click", handleSave);
 
 if (logoutBtn) {
   logoutBtn.addEventListener("click", async () => {

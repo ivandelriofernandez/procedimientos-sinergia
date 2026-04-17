@@ -1,7 +1,7 @@
 import { loginUser, watchAuthState } from "./auth.js";
 
-const loginForm     = document.getElementById("loginForm");
-const loginMessage  = document.getElementById("loginMessage");
+const loginForm    = document.getElementById("loginForm");
+const loginMessage = document.getElementById("loginMessage");
 
 function showMessage(text, isError = false) {
   if (!loginMessage) return;
@@ -12,15 +12,13 @@ function showMessage(text, isError = false) {
 if (loginForm) {
   loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-
     const btn = loginForm.querySelector("button[type=submit]");
     btn.disabled = true;
     btn.textContent = "Entrando…";
 
     const email    = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value.trim();
-
-    const result = await loginUser(email, password);
+    const result   = await loginUser(email, password);
 
     if (!result.ok) {
       showMessage("Email o contraseña incorrectos.", true);
