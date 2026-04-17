@@ -692,3 +692,10 @@ textarea { resize: vertical; line-height: 1.6; }
   .proc-meta-row       { flex-wrap: wrap; }
   .proc-ext-link       { margin-left: 0; }
 }
+
+.logo-sinergia {
+  background-color: white;
+  padding: 4px;       /* opcional, para que respire */
+  border-radius: 6px; /* opcional, queda más limpio */
+  display: inline-block;
+}
