@@ -3,13 +3,11 @@ import {
   createProcedure,
   getProcedures,
   getProcedureById,
-  updateProcedure,
-  deleteProcedure
+  updateProcedure
 } from "./firestore.js";
 
 const procedureForm = document.getElementById("procedureForm");
 const proceduresList = document.getElementById("proceduresList");
-const procedureDetail = document.getElementById("procedureDetail");
 const logoutBtn = document.getElementById("logoutBtn");
 const currentUserBox = document.getElementById("currentUser");
 const formTitle = document.getElementById("formTitle");
@@ -18,7 +16,6 @@ const cancelEditBtn = document.getElementById("cancelEditBtn");
 const editingIdInput = document.getElementById("editingId");
 
 let proceduresCache = [];
-let selectedProcedureId = "";
 
 function escapeHtml(text) {
   if (!text) return "";
@@ -28,17 +25,6 @@ function escapeHtml(text) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-}
-
-function normalizeUrl(url) {
-  if (!url) return "";
-  const trimmed = url.trim();
-
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return trimmed;
-  }
-
-  return `https://${trimmed}`;
 }
 
 function setFormModeCreate() {
@@ -64,126 +50,6 @@ function fillForm(procedure) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function renderProcedureDetail(procedure) {
-  if (!procedure) {
-    procedureDetail.className = "procedure-detail empty-detail";
-    procedureDetail.innerHTML = "<p>Selecciona un procedimiento para ver el detalle.</p>";
-    return;
-  }
-
-  const documentLink = procedure.documentUrl
-    ? `<a class="doc-link" href="${escapeHtml(normalizeUrl(procedure.documentUrl))}" target="_blank" rel="noopener noreferrer">Abrir documento</a>`
-    : "<span class='no-doc'>Sin documento enlazado</span>";
-
-  procedureDetail.className = "procedure-detail";
-  procedureDetail.innerHTML = `
-    <div class="detail-header">
-      <div>
-        <h3>${escapeHtml(procedure.title)}</h3>
-        <span class="badge">${escapeHtml(procedure.category || "Sin categoría")}</span>
-      </div>
-
-      <div class="card-actions">
-        <button class="edit-btn" id="detailEditBtn" type="button">Editar</button>
-        <button class="danger-btn" id="detailDeleteBtn" type="button">Eliminar</button>
-      </div>
-    </div>
-
-    <div class="detail-block">
-      <h4>Descripción</h4>
-      <p>${escapeHtml(procedure.description)}</p>
-    </div>
-
-    <div class="detail-block">
-      <h4>Pasos</h4>
-      <pre>${escapeHtml(procedure.steps)}</pre>
-    </div>
-
-    <div class="detail-block">
-      <h4>Documento</h4>
-      ${documentLink}
-    </div>
-  `;
-
-  const detailEditBtn = document.getElementById("detailEditBtn");
-  const detailDeleteBtn = document.getElementById("detailDeleteBtn");
-
-  detailEditBtn.addEventListener("click", () => {
-    fillForm(procedure);
-  });
-
-  detailDeleteBtn.addEventListener("click", async () => {
-    const confirmed = confirm("¿Seguro que quieres eliminar este procedimiento?");
-    if (!confirmed) return;
-
-    const result = await deleteProcedure(procedure.id);
-
-    if (!result.ok) {
-      alert(`Error al eliminar: ${result.error}`);
-      return;
-    }
-
-    if (editingIdInput.value === procedure.id) {
-      setFormModeCreate();
-    }
-
-    selectedProcedureId = "";
-    await loadProcedures();
-  });
-}
-
-function renderProceduresList() {
-  if (proceduresCache.length === 0) {
-    proceduresList.innerHTML = "<p>No hay procedimientos todavía.</p>";
-    renderProcedureDetail(null);
-    return;
-  }
-
-  proceduresList.innerHTML = proceduresCache
-    .map((proc) => {
-      const activeClass = proc.id === selectedProcedureId ? "procedure-list-item active" : "procedure-list-item";
-
-      return `
-        <button class="${activeClass}" data-id="${proc.id}" type="button">
-          ${escapeHtml(proc.title)}
-        </button>
-      `;
-    })
-    .join("");
-
-  const listButtons = document.querySelectorAll(".procedure-list-item");
-  listButtons.forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const id = btn.dataset.id;
-      selectedProcedureId = id;
-
-      renderProceduresList();
-
-      const result = await getProcedureById(id);
-
-      if (!result.ok) {
-        renderProcedureDetail(null);
-        alert(`Error al cargar el detalle: ${result.error}`);
-        return;
-      }
-
-      renderProcedureDetail(result.data);
-    });
-  });
-
-  if (!selectedProcedureId && proceduresCache.length > 0) {
-    selectedProcedureId = proceduresCache[0].id;
-    renderProceduresList();
-    renderProcedureDetail(proceduresCache[0]);
-    return;
-  }
-
-  const selectedProcedure = proceduresCache.find((item) => item.id === selectedProcedureId);
-  if (selectedProcedure) {
-    renderProcedureDetail(selectedProcedure);
-  }
-}
-
 async function loadProcedures() {
   proceduresList.innerHTML = "<p>Cargando procedimientos...</p>";
 
@@ -191,20 +57,43 @@ async function loadProcedures() {
 
   if (!result.ok) {
     proceduresList.innerHTML = `<p>Error al cargar: ${escapeHtml(result.error)}</p>`;
-    renderProcedureDetail(null);
     return;
   }
 
   proceduresCache = result.data;
 
-  if (
-    selectedProcedureId &&
-    !proceduresCache.some((item) => item.id === selectedProcedureId)
-  ) {
-    selectedProcedureId = "";
+  if (proceduresCache.length === 0) {
+    proceduresList.innerHTML = "<p>No hay procedimientos todavía.</p>";
+    return;
   }
 
-  renderProceduresList();
+  proceduresList.innerHTML = proceduresCache
+    .map((proc) => {
+      return `
+        <div class="procedure-row">
+          <a class="procedure-list-link" href="./procedimiento.html?id=${encodeURIComponent(proc.id)}">
+            ${escapeHtml(proc.title)}
+          </a>
+          <button class="edit-inline-btn" data-id="${proc.id}" type="button">Editar</button>
+        </div>
+      `;
+    })
+    .join("");
+
+  const editButtons = document.querySelectorAll(".edit-inline-btn");
+  editButtons.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      const result = await getProcedureById(id);
+
+      if (!result.ok) {
+        alert(`Error al cargar el procedimiento: ${result.error}`);
+        return;
+      }
+
+      fillForm(result.data);
+    });
+  });
 }
 
 if (procedureForm) {
@@ -235,12 +124,8 @@ if (procedureForm) {
 
     if (id) {
       result = await updateProcedure(id, payload);
-      selectedProcedureId = id;
     } else {
       result = await createProcedure(payload);
-      if (result.ok) {
-        selectedProcedureId = result.id;
-      }
     }
 
     if (!result.ok) {
@@ -272,6 +157,26 @@ if (logoutBtn) {
   });
 }
 
+function getEditIdFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("edit") || "";
+}
+
+async function tryLoadEditFromUrl() {
+  const editId = getEditIdFromUrl();
+
+  if (!editId) return;
+
+  const result = await getProcedureById(editId);
+
+  if (!result.ok) {
+    alert(`No se pudo cargar el procedimiento a editar: ${result.error}`);
+    return;
+  }
+
+  fillForm(result.data);
+}
+
 watchAuthState((user) => {
   if (!user) {
     if (!window.location.pathname.endsWith("index.html")) {
@@ -287,5 +192,6 @@ watchAuthState((user) => {
   if (proceduresList) {
     setFormModeCreate();
     loadProcedures();
+    tryLoadEditFromUrl();
   }
 });

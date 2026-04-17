@@ -352,3 +352,135 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+.procedure-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #0b2233;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.procedure-list-link {
+  flex: 1;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: bold;
+}
+
+.procedure-list-link:hover {
+  color: #8ff0bf;
+}
+
+.edit-inline-btn {
+  background: #2d7cf3;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.edit-inline-btn:hover {
+  background: #1f66cf;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.topbar-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.procedure-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+}
+
+.procedure-full-view {
+  width: 100%;
+}
+
+.procedure-full-card {
+  background: rgba(14, 39, 59, 0.95);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 32px;
+  box-shadow: var(--shadow);
+}
+
+.procedure-full-header {
+  margin-bottom: 28px;
+}
+
+.procedure-full-header h2 {
+  margin-bottom: 10px;
+  font-size: 34px;
+  line-height: 1.2;
+}
+
+.procedure-section {
+  margin-bottom: 28px;
+}
+
+.procedure-section h3 {
+  margin-bottom: 12px;
+  color: #9bc6e3;
+}
+
+.procedure-section p {
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.procedure-section pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--mono-bg);
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  color: #d7e8f5;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.image-placeholder {
+  min-height: 180px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 20px;
+}
+
+@media (max-width: 768px) {
+  .procedure-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .procedure-full-card {
+    padding: 22px;
+  }
+
+  .procedure-full-header h2 {
+    font-size: 28px;
+  }
+}
