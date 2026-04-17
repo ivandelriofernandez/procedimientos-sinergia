@@ -9,28 +9,32 @@
 </head>
 <body class="word-body">
 
-  <!-- Barra superior fija tipo Word -->
+  <!-- Topbar tipo Office -->
   <header class="word-topbar">
     <div class="word-topbar-left">
-      <a href="./app.html" class="word-back-btn" title="Volver a procedimientos">
-        ← Volver
-      </a>
+      <a href="./app.html" class="word-back-btn">← Volver</a>
       <span class="word-app-name">Sinergia FP</span>
     </div>
+
     <div class="word-topbar-center">
       <span id="docNameDisplay" class="word-doc-name">Nuevo procedimiento</span>
     </div>
+
     <div class="word-topbar-right">
       <p id="currentUser" class="word-current-user"></p>
       <button id="saveProcedureBtn" type="button" class="word-save-btn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
         Guardar
       </button>
-      <button id="logoutBtn" class="word-logout-btn" type="button">Cerrar sesión</button>
+      <button id="logoutBtn" class="word-logout-btn" type="button">Salir</button>
     </div>
   </header>
 
-  <!-- Cinta de herramientas (ribbon) de Quill anclada -->
+  <!-- Ribbon de herramientas -->
   <div class="word-ribbon-wrap">
     <div id="quillToolbar" class="word-ribbon">
       <span class="ql-formats">
@@ -69,12 +73,13 @@
     </div>
   </div>
 
-  <!-- Área del documento -->
+  <!-- Área del folio -->
   <main class="word-canvas">
     <div id="saveMessage" class="word-save-message" hidden></div>
 
     <div class="word-page">
-      <!-- Metadatos del documento -->
+
+      <!-- Metadatos -->
       <div class="word-page-meta">
         <input
           type="text"
@@ -82,27 +87,16 @@
           class="word-title-input"
           placeholder="Título del procedimiento"
           maxlength="120"
-          required
         />
 
         <div class="word-meta-row">
           <div class="word-meta-field">
             <label for="category" class="word-meta-label">Categoría</label>
-            <input
-              type="text"
-              id="category"
-              class="word-meta-input"
-              placeholder="Ej: Redes, Soporte, Hardware…"
-            />
+            <input type="text" id="category" class="word-meta-input" placeholder="Ej: Redes, Soporte, Hardware…" />
           </div>
           <div class="word-meta-field">
             <label for="documentUrl" class="word-meta-label">URL documento externo</label>
-            <input
-              type="text"
-              id="documentUrl"
-              class="word-meta-input"
-              placeholder="https://…"
-            />
+            <input type="text" id="documentUrl" class="word-meta-input" placeholder="https://…" />
           </div>
         </div>
       </div>
@@ -117,18 +111,18 @@
           class="word-description-input"
           rows="3"
           placeholder="Resume en pocas líneas de qué trata este procedimiento…"
-          required
         ></textarea>
       </div>
 
       <div class="word-page-divider"></div>
 
-      <!-- Pasos - editor Quill -->
+      <!-- Pasos (Quill) -->
       <div class="word-page-section">
         <p class="word-section-label">Pasos del procedimiento</p>
         <div id="stepsEditor" class="word-quill-editor"></div>
-        <p class="word-editor-hint">Escribe, pega texto con formato e imágenes directamente.</p>
+        <p class="word-editor-hint">Escribe, pega texto con formato e imágenes directamente en el editor.</p>
       </div>
+
     </div>
   </main>
 

@@ -1,9 +1,10 @@
 import { loginUser, watchAuthState } from "./auth.js";
 
-const loginForm = document.getElementById("loginForm");
-const loginMessage = document.getElementById("loginMessage");
+const loginForm     = document.getElementById("loginForm");
+const loginMessage  = document.getElementById("loginMessage");
 
 function showMessage(text, isError = false) {
+  if (!loginMessage) return;
   loginMessage.textContent = text;
   loginMessage.className = isError ? "message error" : "message success";
 }
@@ -14,9 +15,9 @@ if (loginForm) {
 
     const btn = loginForm.querySelector("button[type=submit]");
     btn.disabled = true;
-    btn.textContent = "Entrando...";
+    btn.textContent = "Entrando…";
 
-    const email = document.getElementById("loginEmail").value.trim();
+    const email    = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value.trim();
 
     const result = await loginUser(email, password);
@@ -33,7 +34,5 @@ if (loginForm) {
 }
 
 watchAuthState((user) => {
-  if (user) {
-    window.location.href = "app.html";
-  }
+  if (user) window.location.href = "app.html";
 });
