@@ -58,12 +58,10 @@ if (procedureForm) {
       return;
     }
 
-    const createdId = result.id;
-
+    alert("Procedimiento creado correctamente.");
     procedureForm.reset();
     resetEditor();
-
-    window.location.href = `./procedimiento.html?id=${encodeURIComponent(createdId)}`;
+    window.location.href = "./app.html";
   });
 }
 
