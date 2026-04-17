@@ -3,29 +3,136 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sinergia FP | Panel IT</title>
+  <title>Sinergia FP | Nuevo procedimiento</title>
   <link rel="stylesheet" href="./css/styles.css" />
+  <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet" />
 </head>
-<body>
-  <header class="topbar">
-    <div>
-      <h1>Sinergia FP · Procedimientos IT</h1>
-      <p id="currentUser" class="current-user"></p>
-    </div>
+<body class="word-body">
 
-    <div class="topbar-actions">
-      <a href="./nuevo-procedimiento.html" class="primary-btn topbar-link">Nuevo procedimiento</a>
-      <button id="logoutBtn" class="secondary-btn" type="button">Cerrar sesión</button>
+  <!-- Barra superior fija tipo Word -->
+  <header class="word-topbar">
+    <div class="word-topbar-left">
+      <a href="./app.html" class="word-back-btn" title="Volver a procedimientos">
+        ← Volver
+      </a>
+      <span class="word-app-name">Sinergia FP</span>
+    </div>
+    <div class="word-topbar-center">
+      <span id="docNameDisplay" class="word-doc-name">Nuevo procedimiento</span>
+    </div>
+    <div class="word-topbar-right">
+      <p id="currentUser" class="word-current-user"></p>
+      <button id="saveProcedureBtn" type="button" class="word-save-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Guardar
+      </button>
+      <button id="logoutBtn" class="word-logout-btn" type="button">Cerrar sesión</button>
     </div>
   </header>
 
-  <main class="app-list-page">
-    <section class="panel procedures-panel">
-      <h2>Procedimientos guardados</h2>
-      <div id="proceduresList" class="procedures-list"></div>
-    </section>
+  <!-- Cinta de herramientas (ribbon) de Quill anclada -->
+  <div class="word-ribbon-wrap">
+    <div id="quillToolbar" class="word-ribbon">
+      <span class="ql-formats">
+        <select class="ql-header">
+          <option value="1">Título 1</option>
+          <option value="2">Título 2</option>
+          <option value="3">Título 3</option>
+          <option selected>Normal</option>
+        </select>
+      </span>
+      <span class="ql-formats">
+        <button class="ql-bold"></button>
+        <button class="ql-italic"></button>
+        <button class="ql-underline"></button>
+        <button class="ql-strike"></button>
+      </span>
+      <span class="ql-formats">
+        <button class="ql-list" value="ordered"></button>
+        <button class="ql-list" value="bullet"></button>
+      </span>
+      <span class="ql-formats">
+        <button class="ql-blockquote"></button>
+        <button class="ql-code-block"></button>
+      </span>
+      <span class="ql-formats">
+        <button class="ql-link"></button>
+        <button class="ql-image"></button>
+      </span>
+      <span class="ql-formats">
+        <select class="ql-color"></select>
+        <select class="ql-background"></select>
+      </span>
+      <span class="ql-formats">
+        <button class="ql-clean"></button>
+      </span>
+    </div>
+  </div>
+
+  <!-- Área del documento -->
+  <main class="word-canvas">
+    <div id="saveMessage" class="word-save-message" hidden></div>
+
+    <div class="word-page">
+      <!-- Metadatos del documento -->
+      <div class="word-page-meta">
+        <input
+          type="text"
+          id="title"
+          class="word-title-input"
+          placeholder="Título del procedimiento"
+          maxlength="120"
+          required
+        />
+
+        <div class="word-meta-row">
+          <div class="word-meta-field">
+            <label for="category" class="word-meta-label">Categoría</label>
+            <input
+              type="text"
+              id="category"
+              class="word-meta-input"
+              placeholder="Ej: Redes, Soporte, Hardware…"
+            />
+          </div>
+          <div class="word-meta-field">
+            <label for="documentUrl" class="word-meta-label">URL documento externo</label>
+            <input
+              type="text"
+              id="documentUrl"
+              class="word-meta-input"
+              placeholder="https://…"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="word-page-divider"></div>
+
+      <!-- Descripción -->
+      <div class="word-page-section">
+        <p class="word-section-label">Descripción breve</p>
+        <textarea
+          id="description"
+          class="word-description-input"
+          rows="3"
+          placeholder="Resume en pocas líneas de qué trata este procedimiento…"
+          required
+        ></textarea>
+      </div>
+
+      <div class="word-page-divider"></div>
+
+      <!-- Pasos - editor Quill -->
+      <div class="word-page-section">
+        <p class="word-section-label">Pasos del procedimiento</p>
+        <div id="stepsEditor" class="word-quill-editor"></div>
+        <p class="word-editor-hint">Escribe, pega texto con formato e imágenes directamente.</p>
+      </div>
+    </div>
   </main>
 
-  <script type="module" src="./js/app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
+  <script type="module" src="./js/new-procedure.js"></script>
 </body>
 </html>

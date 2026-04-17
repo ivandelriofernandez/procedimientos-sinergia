@@ -1,7 +1,6 @@
-import { loginUser, registerUser, watchAuthState } from "./auth.js";
+import { loginUser, watchAuthState } from "./auth.js";
 
 const loginForm = document.getElementById("loginForm");
-const registerForm = document.getElementById("registerForm");
 const loginMessage = document.getElementById("loginMessage");
 
 function showMessage(text, isError = false) {
@@ -13,42 +12,28 @@ if (loginForm) {
   loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
+    const btn = loginForm.querySelector("button[type=submit]");
+    btn.disabled = true;
+    btn.textContent = "Entrando...";
+
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value.trim();
 
     const result = await loginUser(email, password);
 
     if (!result.ok) {
-      showMessage(result.error, true);
+      showMessage("Email o contraseña incorrectos.", true);
+      btn.disabled = false;
+      btn.textContent = "Entrar";
       return;
     }
 
-    showMessage("Login correcto");
-    window.location.href = "app.html";
-  });
-}
-
-if (registerForm) {
-  registerForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const email = document.getElementById("registerEmail").value.trim();
-    const password = document.getElementById("registerPassword").value.trim();
-
-    const result = await registerUser(email, password);
-
-    if (!result.ok) {
-      showMessage(result.error, true);
-      return;
-    }
-
-    showMessage("Usuario creado correctamente");
     window.location.href = "app.html";
   });
 }
 
 watchAuthState((user) => {
-  if (user && window.location.pathname.endsWith("index.html")) {
+  if (user) {
     window.location.href = "app.html";
   }
 });

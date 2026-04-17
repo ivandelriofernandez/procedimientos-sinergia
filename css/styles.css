@@ -37,16 +37,23 @@ a {
   color: #8ad8ff;
 }
 
+/* ─── LOGIN ─────────────────────────────────────────────── */
+
 .login-body {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
+  min-height: 100vh;
 }
 
 .login-container {
   width: 100%;
   max-width: 1100px;
+}
+
+.login-container--centered {
+  max-width: 440px;
 }
 
 .login-card {
@@ -57,9 +64,31 @@ a {
   box-shadow: var(--shadow);
 }
 
+.login-logo {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.login-logo h1 {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
 .subtitle {
   color: var(--muted);
-  margin-bottom: 24px;
+  margin-bottom: 0;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-submit-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+  font-size: 15px;
 }
 
 .forms-grid {
@@ -137,6 +166,8 @@ button {
   background: var(--danger-hover);
 }
 
+/* ─── TOPBAR (app / procedimiento) ──────────────────────── */
+
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -153,204 +184,36 @@ button {
   margin-bottom: 0;
 }
 
-.dashboard {
-  display: grid;
-  grid-template-columns: 380px 1fr;
-  gap: 24px;
-  padding: 24px;
-}
-
-.procedure-form textarea {
-  resize: vertical;
-}
-
-.procedure-card {
-  background: #0b2233;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 18px;
-  margin-bottom: 16px;
-}
-
-.procedure-card-header {
+.topbar-actions {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 12px;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.badge {
-  display: inline-block;
-  margin-top: 8px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(31, 191, 117, 0.15);
-  color: #8ff0bf;
-  font-size: 12px;
-}
-
-.procedure-card pre {
-  white-space: pre-wrap;
-  word-break: break-word;
-  background: var(--mono-bg);
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  color: #d7e8f5;
-}
-
-.procedure-card-footer {
-  margin-top: 12px;
-}
-
-.doc-link {
-  font-weight: bold;
+.topbar-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
 }
 
-.no-doc {
-  color: var(--muted);
-}
+/* ─── APP LIST PAGE ──────────────────────────────────────── */
 
-.message {
-  min-height: 24px;
-  margin-bottom: 16px;
-  font-size: 14px;
-}
-
-.message.error {
-  color: #ff9b9b;
-}
-
-.message.success {
-  color: #98f0b9;
-}
-
-@media (max-width: 900px) {
-  .dashboard {
-    grid-template-columns: 1fr;
-  }
-
-  .topbar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-.form-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.card-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.edit-btn {
-  background: #2d7cf3;
-  color: white;
-  margin-top: 0;
-}
-
-.edit-btn:hover {
-  background: #1f66cf;
+.app-list-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
 }
 
 .procedures-panel {
   min-height: 600px;
 }
 
-.procedures-layout {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 20px;
-  align-items: start;
-}
-
-.procedures-list-wrap {
-  background: #0b2233;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px;
-}
-
 .procedures-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-.procedure-list-item {
-  width: 100%;
-  text-align: left;
-  padding: 14px 16px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: #102c42;
-  color: var(--text);
-  cursor: pointer;
-  margin-top: 0;
-}
-
-.procedure-list-item:hover {
-  background: #153750;
-}
-
-.procedure-list-item.active {
-  background: rgba(31, 191, 117, 0.18);
-  border-color: rgba(31, 191, 117, 0.5);
-}
-
-.procedure-detail {
-  background: #0b2233;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 22px;
-  min-height: 320px;
-}
-
-.empty-detail {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--muted);
-}
-
-.detail-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 22px;
-}
-
-.detail-block {
-  margin-bottom: 22px;
-}
-
-.detail-block h4 {
-  margin-bottom: 10px;
-  color: #9bc6e3;
-}
-
-.detail-block pre {
-  white-space: pre-wrap;
-  word-break: break-word;
-  background: var(--mono-bg);
-  padding: 14px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  color: #d7e8f5;
-}
-
-@media (max-width: 1100px) {
-  .procedures-layout {
-    grid-template-columns: 1fr;
-  }
 }
 
 .procedure-row {
@@ -376,33 +239,7 @@ button {
   color: #8ff0bf;
 }
 
-.edit-inline-btn {
-  background: #2d7cf3;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 10px 14px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.edit-inline-btn:hover {
-  background: #1f66cf;
-}
-
-.topbar-actions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.topbar-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-}
+/* ─── PROCEDURE DETAIL PAGE ──────────────────────────────── */
 
 .procedure-page {
   max-width: 1200px;
@@ -470,21 +307,6 @@ button {
   padding: 20px;
 }
 
-@media (max-width: 768px) {
-  .procedure-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .procedure-full-card {
-    padding: 22px;
-  }
-
-  .procedure-full-header h2 {
-    font-size: 28px;
-  }
-}
-
 .procedure-edit-panel {
   margin-top: 28px;
 }
@@ -496,6 +318,83 @@ button {
 .procedure-edit-panel textarea {
   resize: vertical;
 }
+
+.procedure-form textarea {
+  resize: vertical;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.edit-btn {
+  background: #2d7cf3;
+  color: white;
+  margin-top: 0;
+}
+
+.edit-btn:hover {
+  background: #1f66cf;
+}
+
+.edit-inline-btn {
+  background: #2d7cf3;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.edit-inline-btn:hover {
+  background: #1f66cf;
+}
+
+/* ─── BADGES / MISC ──────────────────────────────────────── */
+
+.badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(31, 191, 117, 0.15);
+  color: #8ff0bf;
+  font-size: 12px;
+}
+
+.message {
+  min-height: 24px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.message.error {
+  color: #ff9b9b;
+}
+
+.message.success {
+  color: #98f0b9;
+}
+
+.doc-link {
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.no-doc {
+  color: var(--muted);
+}
+
+/* ─── QUILL (detail edit panel) ─────────────────────────── */
 
 #stepsEditor,
 #editStepsEditor {
@@ -585,16 +484,476 @@ button {
   overflow-x: auto;
 }
 
-.app-list-page {
-  max-width: 1100px;
+/* ─── DASHBOARD (legacy) ─────────────────────────────────── */
+
+.dashboard {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+  padding: 24px;
+}
+
+@media (max-width: 900px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .procedure-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .procedure-full-card {
+    padding: 22px;
+  }
+
+  .procedure-full-header h2 {
+    font-size: 28px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   EDITOR TIPO WORD — nuevo-procedimiento.html
+══════════════════════════════════════════════════════════ */
+
+.word-body {
+  margin: 0;
+  background: #d6e0ea;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Barra superior tipo Word */
+.word-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 20px;
+  height: 48px;
+  background: #1d3a52;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.word-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+}
+
+.word-topbar-center {
+  flex: 2;
+  text-align: center;
+}
+
+.word-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.word-back-btn {
+  color: #a9c8e0;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.word-back-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+.word-app-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e8f1f7;
+  letter-spacing: 0.03em;
+}
+
+.word-doc-name {
+  font-size: 13px;
+  color: #a9c8e0;
+  font-style: italic;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.word-current-user {
+  font-size: 12px;
+  color: #7a9db8;
+  margin: 0;
+  white-space: nowrap;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.word-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 0;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.word-save-btn:hover {
+  background: var(--primary-hover);
+}
+
+.word-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.word-logout-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #a9c8e0;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 0;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.word-logout-btn:hover {
+  background: rgba(255,255,255,0.07);
+  color: #fff;
+}
+
+/* Cinta de herramientas (Ribbon) */
+.word-ribbon-wrap {
+  position: sticky;
+  top: 48px;
+  z-index: 99;
+  background: #f3f4f6;
+  border-bottom: 1px solid #c8d4dc;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.word-ribbon {
+  max-width: 960px;
   margin: 0 auto;
-  padding: 32px 24px 48px;
+  padding: 6px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  align-items: center;
 }
 
-.create-procedure-panel {
-  max-width: 100%;
+/* Overrides para Quill toolbar embebida en el ribbon */
+.word-ribbon .ql-toolbar {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
 }
 
-.create-procedure-panel .procedure-form {
+/* Forzar que la toolbar de Quill renderice inline con nuestro ribbon */
+.word-ribbon .ql-formats {
+  margin-right: 8px !important;
+}
+
+.word-ribbon button,
+.word-ribbon .ql-toolbar button {
+  color: #374151 !important;
+  margin-top: 0 !important;
+  background: transparent !important;
+  border-radius: 4px !important;
+  padding: 5px 6px !important;
+  transition: background 0.15s !important;
+}
+
+.word-ribbon button:hover,
+.word-ribbon .ql-toolbar button:hover {
+  background: #d1dbe4 !important;
+}
+
+.word-ribbon select,
+.word-ribbon .ql-toolbar select {
+  background: #fff !important;
+  border: 1px solid #ccd4db !important;
+  border-radius: 4px !important;
+  color: #374151 !important;
+  font-size: 13px !important;
+  padding: 4px 6px !important;
+}
+
+/* Área gris tipo Word con el folio blanco */
+.word-canvas {
+  flex: 1;
+  padding: 36px 24px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Mensaje de guardado inline */
+.word-save-message {
   width: 100%;
+  max-width: 960px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.word-save-message--ok {
+  background: rgba(31, 191, 117, 0.18);
+  color: #7ef0b8;
+  border: 1px solid rgba(31, 191, 117, 0.35);
+}
+
+.word-save-message--error {
+  background: rgba(217, 83, 79, 0.18);
+  color: #ffaaaa;
+  border: 1px solid rgba(217, 83, 79, 0.35);
+}
+
+/* El folio blanco */
+.word-page {
+  width: 100%;
+  max-width: 960px;
+  background: #fff;
+  color: #111;
+  border-radius: 4px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18), 0 1px 4px rgba(0,0,0,0.1);
+  padding: 56px 72px 64px;
+  min-height: 900px;
+}
+
+/* Título principal — grande, como en Word */
+.word-title-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 32px;
+  font-weight: 700;
+  color: #111;
+  background: transparent;
+  padding: 0 0 12px;
+  border-bottom: 2px solid #e4e9ed;
+  margin-bottom: 20px;
+  border-radius: 0;
+  font-family: 'Georgia', serif;
+  line-height: 1.2;
+}
+
+.word-title-input::placeholder {
+  color: #aab8c2;
+  font-style: italic;
+}
+
+/* Metadatos (categoría, URL) */
+.word-page-meta {
+  margin-bottom: 24px;
+}
+
+.word-meta-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.word-meta-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.word-meta-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7a9db8;
+  margin: 0;
+}
+
+.word-meta-input {
+  border: none;
+  border-bottom: 1px solid #d0dbe4;
+  border-radius: 0;
+  background: transparent;
+  color: #374151;
+  font-size: 13px;
+  padding: 6px 2px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.word-meta-input:focus {
+  border-bottom-color: var(--primary);
+}
+
+.word-meta-input::placeholder {
+  color: #b0bec5;
+}
+
+/* Divisor */
+.word-page-divider {
+  border: none;
+  border-top: 1px solid #e4e9ed;
+  margin: 24px 0;
+}
+
+/* Secciones del documento */
+.word-page-section {
+  margin-bottom: 28px;
+}
+
+.word-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #7a9db8;
+  margin: 0 0 10px;
+}
+
+/* Descripción */
+.word-description-input {
+  width: 100%;
+  border: none;
+  border-left: 3px solid #d0dbe4;
+  border-radius: 0;
+  background: #f9fbfc;
+  color: #374151;
+  font-size: 15px;
+  line-height: 1.7;
+  padding: 10px 14px;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.word-description-input:focus {
+  border-left-color: var(--primary);
+  background: #fff;
+}
+
+.word-description-input::placeholder {
+  color: #aab8c2;
+}
+
+/* Editor de pasos (Quill dentro del folio) */
+.word-quill-editor {
+  border: 1px solid #e0e8ee;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* La toolbar de Quill dentro del folio está en el ribbon, así que ocultamos la interna */
+.word-quill-editor .ql-toolbar {
+  display: none;
+}
+
+.word-quill-editor .ql-container {
+  border: none !important;
+  font-size: 15px;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #1a1a1a;
+  min-height: 320px;
+}
+
+.word-quill-editor .ql-editor {
+  min-height: 300px;
+  padding: 16px;
+  line-height: 1.75;
+}
+
+.word-quill-editor .ql-editor img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 14px 0;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.word-quill-editor .ql-editor.ql-blank::before {
+  color: #b0bec5;
+  font-style: italic;
+}
+
+.word-editor-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #9badb8;
+}
+
+/* ─── Responsive Word editor ─────────────────────────────── */
+
+@media (max-width: 900px) {
+  .word-page {
+    padding: 32px 28px 40px;
+  }
+
+  .word-meta-row {
+    grid-template-columns: 1fr;
+  }
+
+  .word-title-input {
+    font-size: 24px;
+  }
+
+  .word-topbar-center {
+    display: none;
+  }
+
+  .word-current-user {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .word-page {
+    padding: 20px 16px 32px;
+  }
+
+  .word-canvas {
+    padding: 16px 8px 40px;
+  }
+
+  .word-ribbon {
+    padding: 4px 8px;
+  }
 }
