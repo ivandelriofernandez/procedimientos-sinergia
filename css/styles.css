@@ -484,3 +484,15 @@ button {
     font-size: 28px;
   }
 }
+
+.procedure-edit-panel {
+  margin-top: 28px;
+}
+
+.procedure-edit-panel .panel {
+  max-width: 100%;
+}
+
+.procedure-edit-panel textarea {
+  resize: vertical;
+}

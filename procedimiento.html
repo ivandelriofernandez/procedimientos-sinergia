@@ -25,6 +25,34 @@
     <section id="procedureFullView" class="procedure-full-view">
       <p>Cargando procedimiento...</p>
     </section>
+
+    <section id="procedureEditPanel" class="procedure-edit-panel" hidden>
+      <div class="panel">
+        <h2>Editar procedimiento</h2>
+
+        <form id="editProcedureForm" class="procedure-form">
+          <label for="editTitle">Título</label>
+          <input type="text" id="editTitle" required />
+
+          <label for="editCategory">Categoría</label>
+          <input type="text" id="editCategory" />
+
+          <label for="editDescription">Descripción</label>
+          <textarea id="editDescription" rows="3" required></textarea>
+
+          <label for="editSteps">Pasos</label>
+          <textarea id="editSteps" rows="10" required></textarea>
+
+          <label for="editDocumentUrl">URL del documento externo</label>
+          <input type="text" id="editDocumentUrl" />
+
+          <div class="form-actions">
+            <button id="saveEditBtn" type="submit" class="primary-btn">Guardar cambios</button>
+            <button id="cancelEditBtn" type="button" class="secondary-btn">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </section>
   </main>
 
   <script type="module" src="./js/procedure-detail.js"></script>

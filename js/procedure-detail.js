@@ -1,11 +1,16 @@
 import { logoutUser, watchAuthState } from "./auth.js";
-import { getProcedureById, deleteProcedure } from "./firestore.js";
+import { getProcedureById, updateProcedure, deleteProcedure } from "./firestore.js";
 
 const currentUserBox = document.getElementById("currentUser");
 const procedureFullView = document.getElementById("procedureFullView");
+const procedureEditPanel = document.getElementById("procedureEditPanel");
 const logoutBtn = document.getElementById("logoutBtn");
 const editProcedureBtn = document.getElementById("editProcedureBtn");
 const deleteProcedureBtn = document.getElementById("deleteProcedureBtn");
+const editProcedureForm = document.getElementById("editProcedureForm");
+const cancelEditBtn = document.getElementById("cancelEditBtn");
+
+let currentProcedure = null;
 
 function escapeHtml(text) {
   if (!text) return "";
@@ -72,6 +77,28 @@ function renderProcedure(procedure) {
   `;
 }
 
+function fillEditForm(procedure) {
+  document.getElementById("editTitle").value = procedure.title || "";
+  document.getElementById("editCategory").value = procedure.category || "";
+  document.getElementById("editDescription").value = procedure.description || "";
+  document.getElementById("editSteps").value = procedure.steps || "";
+  document.getElementById("editDocumentUrl").value = procedure.documentUrl || "";
+}
+
+function openEditMode() {
+  if (!currentProcedure) return;
+  fillEditForm(currentProcedure);
+  procedureEditPanel.hidden = false;
+  editProcedureBtn.hidden = true;
+  window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+}
+
+function closeEditMode() {
+  procedureEditPanel.hidden = true;
+  editProcedureBtn.hidden = false;
+  editProcedureForm.reset();
+}
+
 async function loadProcedure() {
   const id = getProcedureIdFromUrl();
 
@@ -91,13 +118,67 @@ async function loadProcedure() {
     return;
   }
 
-  renderProcedure(result.data);
+  currentProcedure = result.data;
+  renderProcedure(currentProcedure);
+}
 
+if (editProcedureBtn) {
   editProcedureBtn.addEventListener("click", () => {
-    window.location.href = `./app.html?edit=${encodeURIComponent(id)}`;
+    openEditMode();
   });
+}
 
+if (cancelEditBtn) {
+  cancelEditBtn.addEventListener("click", () => {
+    closeEditMode();
+  });
+}
+
+if (editProcedureForm) {
+  editProcedureForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const id = getProcedureIdFromUrl();
+    const title = document.getElementById("editTitle").value.trim();
+    const category = document.getElementById("editCategory").value.trim();
+    const description = document.getElementById("editDescription").value.trim();
+    const steps = document.getElementById("editSteps").value.trim();
+    const documentUrl = document.getElementById("editDocumentUrl").value.trim();
+
+    if (!title || !description || !steps) {
+      alert("Título, descripción y pasos son obligatorios.");
+      return;
+    }
+
+    const result = await updateProcedure(id, {
+      title,
+      category,
+      description,
+      steps,
+      documentUrl
+    });
+
+    if (!result.ok) {
+      alert(`Error al actualizar: ${result.error}`);
+      return;
+    }
+
+    const updated = await getProcedureById(id);
+
+    if (!updated.ok) {
+      alert(`Se guardó, pero no se pudo recargar el procedimiento: ${updated.error}`);
+      return;
+    }
+
+    currentProcedure = updated.data;
+    renderProcedure(currentProcedure);
+    closeEditMode();
+  });
+}
+
+if (deleteProcedureBtn) {
   deleteProcedureBtn.addEventListener("click", async () => {
+    const id = getProcedureIdFromUrl();
     const confirmed = confirm("¿Seguro que quieres eliminar este procedimiento?");
     if (!confirmed) return;
 

@@ -17,11 +17,9 @@
 
   <main class="dashboard">
     <section class="panel">
-      <h2 id="formTitle">Nuevo procedimiento</h2>
+      <h2>Nuevo procedimiento</h2>
 
       <form id="procedureForm" class="procedure-form">
-        <input type="hidden" id="editingId" />
-
         <label for="title">Título</label>
         <input type="text" id="title" placeholder="Ej. Alta de usuario en Google Workspace" required />
 
@@ -39,7 +37,6 @@
 
         <div class="form-actions">
           <button id="submitBtn" type="submit" class="primary-btn">Guardar procedimiento</button>
-          <button id="cancelEditBtn" type="button" class="secondary-btn" hidden>Cancelar edición</button>
         </div>
       </form>
     </section>
