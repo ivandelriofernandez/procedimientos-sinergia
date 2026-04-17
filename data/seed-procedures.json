@@ -1,0 +1,29 @@
+[
+  {
+    "id": "onboarding-docente",
+    "title": "Alta de nuevo docente",
+    "category": "Onboarding",
+    "owner": "Sistemas",
+    "priority": "Alto",
+    "summary": "Creación de cuenta, permisos, correo, acceso a plataformas y entrega de credenciales.",
+    "steps": "1. Validar solicitud de RRHH.\n2. Crear correo corporativo y usuario base.\n3. Asignar grupos y permisos en las plataformas.\n4. Registrar equipo y entrega.\n5. Confirmar acceso con el responsable académico."
+  },
+  {
+    "id": "reset-password-alumnos",
+    "title": "Reseteo de contraseñas de alumnado",
+    "category": "Soporte",
+    "owner": "Helpdesk",
+    "priority": "Medio",
+    "summary": "Proceso estándar para incidencias de acceso a plataformas formativas.",
+    "steps": "1. Verificar identidad del solicitante.\n2. Revisar si existe bloqueo o contraseña caducada.\n3. Forzar reseteo.\n4. Notificar nuevas instrucciones.\n5. Registrar ticket cerrado."
+  },
+  {
+    "id": "baja-empleado",
+    "title": "Baja de empleado",
+    "category": "Offboarding",
+    "owner": "Seguridad IT",
+    "priority": "Crítico",
+    "summary": "Revocación de accesos, recogida de equipos y trazabilidad del cierre.",
+    "steps": "1. Confirmar fecha y hora de baja.\n2. Revocar correo, SSO, VPN y herramientas SaaS.\n3. Desactivar credenciales físicas y lógicas.\n4. Recoger portátil y periféricos.\n5. Generar acta de cierre y archivarla."
+  }
+]

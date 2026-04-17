@@ -1,0 +1,239 @@
+:root {
+  --bg: #081c2c;
+  --bg-soft: #0f2e46;
+  --panel: #12344f;
+  --panel-2: #0e273b;
+  --text: #e8f1f7;
+  --muted: #a9c0d3;
+  --primary: #1fbf75;
+  --primary-hover: #19a565;
+  --secondary: #1e4f7a;
+  --secondary-hover: #163d5f;
+  --danger: #d9534f;
+  --danger-hover: #b7403c;
+  --border: rgba(255, 255, 255, 0.1);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  --radius: 14px;
+  --mono-bg: #0a1a27;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(135deg, var(--bg), var(--bg-soft));
+  color: var(--text);
+  min-height: 100vh;
+}
+
+h1, h2, h3, p {
+  margin-top: 0;
+}
+
+a {
+  color: #8ad8ff;
+}
+
+.login-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 1100px;
+}
+
+.login-card {
+  background: rgba(18, 52, 79, 0.92);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 32px;
+  box-shadow: var(--shadow);
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+.forms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.panel {
+  background: rgba(14, 39, 59, 0.95);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+label {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #0a2031;
+  color: var(--text);
+  outline: none;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--primary);
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease;
+  margin-top: 16px;
+}
+
+.primary-btn {
+  background: var(--primary);
+  color: white;
+}
+
+.primary-btn:hover {
+  background: var(--primary-hover);
+}
+
+.secondary-btn {
+  background: var(--secondary);
+  color: white;
+}
+
+.secondary-btn:hover {
+  background: var(--secondary-hover);
+}
+
+.danger-btn {
+  background: var(--danger);
+  color: white;
+  margin-top: 0;
+}
+
+.danger-btn:hover {
+  background: var(--danger-hover);
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(8, 28, 44, 0.75);
+  backdrop-filter: blur(8px);
+}
+
+.current-user {
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+  padding: 24px;
+}
+
+.procedure-form textarea {
+  resize: vertical;
+}
+
+.procedure-card {
+  background: #0b2233;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.procedure-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(31, 191, 117, 0.15);
+  color: #8ff0bf;
+  font-size: 12px;
+}
+
+.procedure-card pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--mono-bg);
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  color: #d7e8f5;
+}
+
+.procedure-card-footer {
+  margin-top: 12px;
+}
+
+.doc-link {
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.no-doc {
+  color: var(--muted);
+}
+
+.message {
+  min-height: 24px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.message.error {
+  color: #ff9b9b;
+}
+
+.message.success {
+  color: #98f0b9;
+}
+
+@media (max-width: 900px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sinergia FP | Login IT</title>
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body class="login-body">
+  <main class="login-container">
+    <section class="login-card">
+      <h1>Sinergia FP</h1>
+      <p class="subtitle">Portal de procedimientos IT</p>
+
+      <div id="loginMessage" class="message"></div>
+
+      <div class="forms-grid">
+        <form id="loginForm" class="panel">
+          <h2>Iniciar sesión</h2>
+
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="tu@email.com" required />
+
+          <label for="loginPassword">Contraseña</label>
+          <input type="password" id="loginPassword" placeholder="********" required />
+
+          <button type="submit" class="primary-btn">Entrar</button>
+        </form>
+
+        <form id="registerForm" class="panel">
+          <h2>Crear usuario</h2>
+
+          <label for="registerEmail">Email</label>
+          <input type="email" id="registerEmail" placeholder="nuevo@email.com" required />
+
+          <label for="registerPassword">Contraseña</label>
+          <input type="password" id="registerPassword" placeholder="Mínimo 6 caracteres" required />
+
+          <button type="submit" class="secondary-btn">Crear cuenta</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./js/login.js"></script>
+</body>
+</html>

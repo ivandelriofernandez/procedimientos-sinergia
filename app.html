@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sinergia FP | Panel IT</title>
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Sinergia FP · Procedimientos IT</h1>
+      <p id="currentUser" class="current-user"></p>
+    </div>
+    <button id="logoutBtn" class="secondary-btn">Cerrar sesión</button>
+  </header>
+
+  <main class="dashboard">
+    <section class="panel">
+      <h2>Nuevo procedimiento</h2>
+
+      <form id="procedureForm" class="procedure-form">
+        <label for="title">Título</label>
+        <input type="text" id="title" placeholder="Ej. Alta de usuario en Google Workspace" required />
+
+        <label for="category">Categoría</label>
+        <input type="text" id="category" placeholder="Ej. Cuentas, Redes, Hardware..." />
+
+        <label for="description">Descripción</label>
+        <textarea id="description" rows="3" placeholder="Resumen breve del procedimiento" required></textarea>
+
+        <label for="steps">Pasos</label>
+        <textarea id="steps" rows="8" placeholder="Describe aquí el procedimiento paso a paso" required></textarea>
+
+        <label for="documentUrl">URL del documento externo</label>
+        <input type="text" id="documentUrl" placeholder="https://drive.google.com/... o enlace SharePoint" />
+
+        <button type="submit" class="primary-btn">Guardar procedimiento</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Procedimientos guardados</h2>
+      <div id="proceduresList"></div>
+    </section>
+  </main>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
