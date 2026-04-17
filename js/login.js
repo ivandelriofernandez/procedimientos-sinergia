@@ -1,42 +1,54 @@
-import { loginWithEmail, loginWithGoogle, watchAuth } from './auth.js';
-import { setMessage } from './ui.js';
+import { loginUser, registerUser, watchAuthState } from "./auth.js";
 
-const loginForm = document.getElementById('loginForm');
-const googleLoginBtn = document.getElementById('googleLoginBtn');
-const authMessage = document.getElementById('authMessage');
+const loginForm = document.getElementById("loginForm");
+const registerForm = document.getElementById("registerForm");
+const loginMessage = document.getElementById("loginMessage");
 
-watchAuth((user) => {
-  if (user) window.location.href = './app.html';
-});
-
-loginForm?.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value.trim();
-
-  try {
-    await loginWithEmail(email, password);
-    setMessage(authMessage, 'Acceso correcto. Redirigiendo...', 'ok');
-  } catch (error) {
-    setMessage(authMessage, mapAuthError(error), 'error');
-  }
-});
-
-googleLoginBtn?.addEventListener('click', async () => {
-  try {
-    await loginWithGoogle();
-    setMessage(authMessage, 'Acceso con Google correcto.', 'ok');
-  } catch (error) {
-    setMessage(authMessage, mapAuthError(error), 'error');
-  }
-});
-
-function mapAuthError(error) {
-  const map = {
-    'auth/invalid-credential': 'Credenciales inválidas.',
-    'auth/invalid-email': 'El email no es válido.',
-    'auth/popup-closed-by-user': 'Se cerró la ventana de Google antes de completar el acceso.',
-    'auth/unauthorized-domain': 'Añade tu dominio de Vercel a Authorized Domains en Firebase Auth.'
-  };
-  return map[error.code] || `Error de autenticación: ${error.message}`;
+function showMessage(text, isError = false) {
+  loginMessage.textContent = text;
+  loginMessage.className = isError ? "message error" : "message success";
 }
+
+if (loginForm) {
+  loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
+
+    const result = await loginUser(email, password);
+
+    if (!result.ok) {
+      showMessage(result.error, true);
+      return;
+    }
+
+    showMessage("Login correcto");
+    window.location.href = "app.html";
+  });
+}
+
+if (registerForm) {
+  registerForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const email = document.getElementById("registerEmail").value.trim();
+    const password = document.getElementById("registerPassword").value.trim();
+
+    const result = await registerUser(email, password);
+
+    if (!result.ok) {
+      showMessage(result.error, true);
+      return;
+    }
+
+    showMessage("Usuario creado correctamente");
+    window.location.href = "app.html";
+  });
+}
+
+watchAuthState((user) => {
+  if (user && window.location.pathname.endsWith("index.html")) {
+    window.location.href = "app.html";
+  }
+});
