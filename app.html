@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sinergia FP | Panel IT</title>
+  <title>Sinergia FP | Procedimientos IT</title>
   <link rel="stylesheet" href="./css/styles.css" />
-  <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet" />
 </head>
 <body>
   <header class="topbar">
@@ -13,45 +12,21 @@
       <h1>Sinergia FP · Procedimientos IT</h1>
       <p id="currentUser" class="current-user"></p>
     </div>
-    <button id="logoutBtn" class="secondary-btn" type="button">Cerrar sesión</button>
+
+    <div class="topbar-actions">
+      <a href="./nuevo-procedimiento.html" class="primary-btn topbar-link">Nuevo procedimiento</a>
+      <a href="./index.html" class="secondary-btn topbar-link">Inicio</a>
+      <button id="logoutBtn" class="secondary-btn" type="button">Cerrar sesión</button>
+    </div>
   </header>
 
-  <main class="dashboard">
-    <section class="panel">
-      <h2>Nuevo procedimiento</h2>
-
-      <form id="procedureForm" class="procedure-form">
-        <label for="title">Título</label>
-        <input type="text" id="title" placeholder="Ej. Alta de usuario en Google Workspace" required />
-
-        <label for="category">Categoría</label>
-        <input type="text" id="category" placeholder="Ej. Cuentas, Redes, Hardware..." />
-
-        <label for="description">Descripción</label>
-        <textarea id="description" rows="3" placeholder="Resumen breve del procedimiento" required></textarea>
-
-        <label>Pasos</label>
-        <div id="stepsEditor"></div>
-        <p class="editor-help">
-          Puedes escribir, dar formato y pegar imágenes directamente. Evita pegar demasiadas capturas grandes en un mismo procedimiento.
-        </p>
-
-        <label for="documentUrl">URL del documento externo</label>
-        <input type="text" id="documentUrl" placeholder="https://drive.google.com/... o enlace SharePoint" />
-
-        <div class="form-actions">
-          <button id="submitBtn" type="submit" class="primary-btn">Guardar procedimiento</button>
-        </div>
-      </form>
-    </section>
-
+  <main class="procedure-page">
     <section class="panel procedures-panel">
       <h2>Procedimientos guardados</h2>
       <div id="proceduresList" class="procedures-list"></div>
     </section>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
   <script type="module" src="./js/app.js"></script>
 </body>
 </html>

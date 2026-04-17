@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sinergia FP | Nuevo procedimiento</title>
+  <link rel="stylesheet" href="./css/styles.css" />
+  <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Sinergia FP · Nuevo procedimiento</h1>
+      <p id="currentUser" class="current-user"></p>
+    </div>
+
+    <div class="topbar-actions">
+      <a href="./index.html" class="secondary-btn topbar-link">Inicio</a>
+      <a href="./app.html" class="secondary-btn topbar-link">Ver procedimientos</a>
+      <button id="logoutBtn" class="secondary-btn" type="button">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <main class="procedure-page">
+    <section class="panel procedure-create-panel">
+      <h2>Crear nuevo procedimiento</h2>
+
+      <form id="procedureForm" class="procedure-form">
+        <label for="title">Título</label>
+        <input type="text" id="title" placeholder="Ej. Alta de usuario en Google Workspace" required />
+
+        <label for="category">Categoría</label>
+        <input type="text" id="category" placeholder="Ej. Cuentas, Redes, Hardware..." />
+
+        <label for="description">Descripción</label>
+        <textarea id="description" rows="3" placeholder="Resumen breve del procedimiento" required></textarea>
+
+        <label>Pasos</label>
+        <div id="stepsEditor"></div>
+        <p class="editor-help">
+          Puedes escribir, dar formato y pegar imágenes directamente. Evita pegar demasiadas capturas grandes en un mismo procedimiento.
+        </p>
+
+        <label for="documentUrl">URL del documento externo</label>
+        <input type="text" id="documentUrl" placeholder="https://drive.google.com/... o enlace SharePoint" />
+
+        <div class="form-actions">
+          <button id="submitBtn" type="submit" class="primary-btn">Guardar procedimiento</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
+  <script type="module" src="./js/new-procedure.js"></script>
+</body>
+</html>

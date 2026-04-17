@@ -584,3 +584,22 @@ button {
   border-radius: 10px;
   overflow-x: auto;
 }
+
+.landing-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.landing-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.procedure-create-panel {
+  max-width: 1100px;
+  margin: 0 auto;
+}
