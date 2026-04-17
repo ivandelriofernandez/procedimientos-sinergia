@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sinergia FP | Procedimiento</title>
   <link rel="stylesheet" href="./css/styles.css" />
+  <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet" />
 </head>
 <body>
   <header class="topbar">
@@ -40,8 +41,11 @@
           <label for="editDescription">Descripción</label>
           <textarea id="editDescription" rows="3" required></textarea>
 
-          <label for="editSteps">Pasos</label>
-          <textarea id="editSteps" rows="10" required></textarea>
+          <label>Pasos</label>
+          <div id="editStepsEditor"></div>
+          <p class="editor-help">
+            Puedes escribir, pegar texto con formato y pegar imágenes directamente.
+          </p>
 
           <label for="editDocumentUrl">URL del documento externo</label>
           <input type="text" id="editDocumentUrl" />
@@ -55,6 +59,7 @@
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
   <script type="module" src="./js/procedure-detail.js"></script>
 </body>
 </html>

@@ -6,6 +6,21 @@ const proceduresList = document.getElementById("proceduresList");
 const logoutBtn = document.getElementById("logoutBtn");
 const currentUserBox = document.getElementById("currentUser");
 
+const quill = new Quill("#stepsEditor", {
+  theme: "snow",
+  placeholder: "Escribe aquí los pasos del procedimiento y pega imágenes si lo necesitas...",
+  modules: {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline", "strike"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["blockquote", "code-block"],
+      ["link", "image"],
+      ["clean"]
+    ]
+  }
+});
+
 function escapeHtml(text) {
   if (!text) return "";
   return text
@@ -14,6 +29,20 @@ function escapeHtml(text) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function getEditorHtml() {
+  return quill.root.innerHTML.trim();
+}
+
+function isEditorEmpty() {
+  const text = quill.getText().trim();
+  const hasImages = quill.root.querySelector("img");
+  return !text && !hasImages;
+}
+
+function resetEditor() {
+  quill.setContents([]);
 }
 
 async function loadProcedures() {
@@ -51,10 +80,10 @@ if (procedureForm) {
     const title = document.getElementById("title").value.trim();
     const category = document.getElementById("category").value.trim();
     const description = document.getElementById("description").value.trim();
-    const steps = document.getElementById("steps").value.trim();
+    const stepsHtml = getEditorHtml();
     const documentUrl = document.getElementById("documentUrl").value.trim();
 
-    if (!title || !description || !steps) {
+    if (!title || !description || isEditorEmpty()) {
       alert("Título, descripción y pasos son obligatorios.");
       return;
     }
@@ -63,7 +92,7 @@ if (procedureForm) {
       title,
       category,
       description,
-      steps,
+      stepsHtml,
       documentUrl
     });
 
@@ -73,6 +102,7 @@ if (procedureForm) {
     }
 
     procedureForm.reset();
+    resetEditor();
     await loadProcedures();
   });
 }

@@ -496,3 +496,91 @@ button {
 .procedure-edit-panel textarea {
   resize: vertical;
 }
+
+#stepsEditor,
+#editStepsEditor {
+  background: white;
+  color: #111;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+#stepsEditor .ql-toolbar,
+#editStepsEditor .ql-toolbar {
+  border: none;
+  border-bottom: 1px solid #d9e1e8;
+  background: #f7fafc;
+}
+
+#stepsEditor .ql-container,
+#editStepsEditor .ql-container {
+  border: none;
+  min-height: 260px;
+  font-size: 15px;
+}
+
+#stepsEditor .ql-editor,
+#editStepsEditor .ql-editor {
+  min-height: 240px;
+  line-height: 1.7;
+}
+
+#stepsEditor .ql-editor img,
+#editStepsEditor .ql-editor img,
+.rich-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 14px 0;
+  border-radius: 10px;
+}
+
+.editor-help {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.rich-content {
+  background: var(--mono-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  line-height: 1.7;
+  color: #d7e8f5;
+}
+
+.rich-content p,
+.rich-content ul,
+.rich-content ol,
+.rich-content blockquote,
+.rich-content pre,
+.rich-content h1,
+.rich-content h2,
+.rich-content h3 {
+  margin-top: 0;
+  margin-bottom: 14px;
+}
+
+.rich-content ul,
+.rich-content ol {
+  padding-left: 24px;
+}
+
+.rich-content a {
+  color: #8ad8ff;
+}
+
+.rich-content blockquote {
+  border-left: 4px solid rgba(31, 191, 117, 0.5);
+  padding-left: 14px;
+  color: #b9d6e8;
+}
+
+.rich-content pre {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 12px;
+  border-radius: 10px;
+  overflow-x: auto;
+}

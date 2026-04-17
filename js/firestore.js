@@ -21,7 +21,7 @@ export async function createProcedure(data) {
       title: data.title || "",
       category: data.category || "",
       description: data.description || "",
-      steps: data.steps || "",
+      stepsHtml: data.stepsHtml || "",
       documentUrl: data.documentUrl || "",
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
@@ -79,7 +79,7 @@ export async function updateProcedure(id, data) {
       title: data.title || "",
       category: data.category || "",
       description: data.description || "",
-      steps: data.steps || "",
+      stepsHtml: data.stepsHtml || "",
       documentUrl: data.documentUrl || "",
       updatedAt: serverTimestamp()
     });

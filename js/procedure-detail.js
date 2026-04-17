@@ -10,6 +10,21 @@ const deleteProcedureBtn = document.getElementById("deleteProcedureBtn");
 const editProcedureForm = document.getElementById("editProcedureForm");
 const cancelEditBtn = document.getElementById("cancelEditBtn");
 
+const editQuill = new Quill("#editStepsEditor", {
+  theme: "snow",
+  placeholder: "Edita aquí los pasos del procedimiento...",
+  modules: {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline", "strike"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["blockquote", "code-block"],
+      ["link", "image"],
+      ["clean"]
+    ]
+  }
+});
+
 let currentProcedure = null;
 
 function escapeHtml(text) {
@@ -38,6 +53,14 @@ function getProcedureIdFromUrl() {
   return params.get("id") || "";
 }
 
+function getStepsHtml(procedure) {
+  if (procedure.stepsHtml) return procedure.stepsHtml;
+  if (procedure.steps) {
+    return `<p>${escapeHtml(procedure.steps).replaceAll("\n", "<br>")}</p>`;
+  }
+  return "<p></p>";
+}
+
 function renderProcedure(procedure) {
   const documentLink = procedure.documentUrl
     ? `<a class="doc-link" href="${escapeHtml(normalizeUrl(procedure.documentUrl))}" target="_blank" rel="noopener noreferrer">Abrir documento</a>`
@@ -59,7 +82,7 @@ function renderProcedure(procedure) {
 
       <section class="procedure-section">
         <h3>Pasos</h3>
-        <pre>${escapeHtml(procedure.steps)}</pre>
+        <div class="rich-content">${getStepsHtml(procedure)}</div>
       </section>
 
       <section class="procedure-section">
@@ -70,7 +93,7 @@ function renderProcedure(procedure) {
       <section class="procedure-section">
         <h3>Imágenes</h3>
         <div class="image-placeholder">
-          Aquí podrás mostrar imágenes del procedimiento más adelante.
+          Las imágenes que pegues dentro de “Pasos” aparecerán integradas arriba.
         </div>
       </section>
     </article>
@@ -81,8 +104,14 @@ function fillEditForm(procedure) {
   document.getElementById("editTitle").value = procedure.title || "";
   document.getElementById("editCategory").value = procedure.category || "";
   document.getElementById("editDescription").value = procedure.description || "";
-  document.getElementById("editSteps").value = procedure.steps || "";
   document.getElementById("editDocumentUrl").value = procedure.documentUrl || "";
+  editQuill.root.innerHTML = getStepsHtml(procedure);
+}
+
+function isEditEditorEmpty() {
+  const text = editQuill.getText().trim();
+  const hasImages = editQuill.root.querySelector("img");
+  return !text && !hasImages;
 }
 
 function openEditMode() {
@@ -97,6 +126,7 @@ function closeEditMode() {
   procedureEditPanel.hidden = true;
   editProcedureBtn.hidden = false;
   editProcedureForm.reset();
+  editQuill.setContents([]);
 }
 
 async function loadProcedure() {
@@ -142,10 +172,10 @@ if (editProcedureForm) {
     const title = document.getElementById("editTitle").value.trim();
     const category = document.getElementById("editCategory").value.trim();
     const description = document.getElementById("editDescription").value.trim();
-    const steps = document.getElementById("editSteps").value.trim();
+    const stepsHtml = editQuill.root.innerHTML.trim();
     const documentUrl = document.getElementById("editDocumentUrl").value.trim();
 
-    if (!title || !description || !steps) {
+    if (!title || !description || isEditEditorEmpty()) {
       alert("Título, descripción y pasos son obligatorios.");
       return;
     }
@@ -154,7 +184,7 @@ if (editProcedureForm) {
       title,
       category,
       description,
-      steps,
+      stepsHtml,
       documentUrl
     });
 
