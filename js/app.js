@@ -9,12 +9,16 @@ import {
 
 const procedureForm = document.getElementById("procedureForm");
 const proceduresList = document.getElementById("proceduresList");
+const procedureDetail = document.getElementById("procedureDetail");
 const logoutBtn = document.getElementById("logoutBtn");
 const currentUserBox = document.getElementById("currentUser");
 const formTitle = document.getElementById("formTitle");
 const submitBtn = document.getElementById("submitBtn");
 const cancelEditBtn = document.getElementById("cancelEditBtn");
 const editingIdInput = document.getElementById("editingId");
+
+let proceduresCache = [];
+let selectedProcedureId = "";
 
 function escapeHtml(text) {
   if (!text) return "";
@@ -60,15 +64,124 @@ function fillForm(procedure) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-async function startEditProcedure(id) {
-  const result = await getProcedureById(id);
-
-  if (!result.ok) {
-    alert(`Error al cargar el procedimiento: ${result.error}`);
+function renderProcedureDetail(procedure) {
+  if (!procedure) {
+    procedureDetail.className = "procedure-detail empty-detail";
+    procedureDetail.innerHTML = "<p>Selecciona un procedimiento para ver el detalle.</p>";
     return;
   }
 
-  fillForm(result.data);
+  const documentLink = procedure.documentUrl
+    ? `<a class="doc-link" href="${escapeHtml(normalizeUrl(procedure.documentUrl))}" target="_blank" rel="noopener noreferrer">Abrir documento</a>`
+    : "<span class='no-doc'>Sin documento enlazado</span>";
+
+  procedureDetail.className = "procedure-detail";
+  procedureDetail.innerHTML = `
+    <div class="detail-header">
+      <div>
+        <h3>${escapeHtml(procedure.title)}</h3>
+        <span class="badge">${escapeHtml(procedure.category || "Sin categoría")}</span>
+      </div>
+
+      <div class="card-actions">
+        <button class="edit-btn" id="detailEditBtn" type="button">Editar</button>
+        <button class="danger-btn" id="detailDeleteBtn" type="button">Eliminar</button>
+      </div>
+    </div>
+
+    <div class="detail-block">
+      <h4>Descripción</h4>
+      <p>${escapeHtml(procedure.description)}</p>
+    </div>
+
+    <div class="detail-block">
+      <h4>Pasos</h4>
+      <pre>${escapeHtml(procedure.steps)}</pre>
+    </div>
+
+    <div class="detail-block">
+      <h4>Documento</h4>
+      ${documentLink}
+    </div>
+  `;
+
+  const detailEditBtn = document.getElementById("detailEditBtn");
+  const detailDeleteBtn = document.getElementById("detailDeleteBtn");
+
+  detailEditBtn.addEventListener("click", () => {
+    fillForm(procedure);
+  });
+
+  detailDeleteBtn.addEventListener("click", async () => {
+    const confirmed = confirm("¿Seguro que quieres eliminar este procedimiento?");
+    if (!confirmed) return;
+
+    const result = await deleteProcedure(procedure.id);
+
+    if (!result.ok) {
+      alert(`Error al eliminar: ${result.error}`);
+      return;
+    }
+
+    if (editingIdInput.value === procedure.id) {
+      setFormModeCreate();
+    }
+
+    selectedProcedureId = "";
+    await loadProcedures();
+  });
+}
+
+function renderProceduresList() {
+  if (proceduresCache.length === 0) {
+    proceduresList.innerHTML = "<p>No hay procedimientos todavía.</p>";
+    renderProcedureDetail(null);
+    return;
+  }
+
+  proceduresList.innerHTML = proceduresCache
+    .map((proc) => {
+      const activeClass = proc.id === selectedProcedureId ? "procedure-list-item active" : "procedure-list-item";
+
+      return `
+        <button class="${activeClass}" data-id="${proc.id}" type="button">
+          ${escapeHtml(proc.title)}
+        </button>
+      `;
+    })
+    .join("");
+
+  const listButtons = document.querySelectorAll(".procedure-list-item");
+  listButtons.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      selectedProcedureId = id;
+
+      renderProceduresList();
+
+      const result = await getProcedureById(id);
+
+      if (!result.ok) {
+        renderProcedureDetail(null);
+        alert(`Error al cargar el detalle: ${result.error}`);
+        return;
+      }
+
+      renderProcedureDetail(result.data);
+    });
+  });
+
+  if (!selectedProcedureId && proceduresCache.length > 0) {
+    selectedProcedureId = proceduresCache[0].id;
+    renderProceduresList();
+    renderProcedureDetail(proceduresCache[0]);
+    return;
+  }
+
+  const selectedProcedure = proceduresCache.find((item) => item.id === selectedProcedureId);
+  if (selectedProcedure) {
+    renderProcedureDetail(selectedProcedure);
+  }
 }
 
 async function loadProcedures() {
@@ -78,74 +191,20 @@ async function loadProcedures() {
 
   if (!result.ok) {
     proceduresList.innerHTML = `<p>Error al cargar: ${escapeHtml(result.error)}</p>`;
+    renderProcedureDetail(null);
     return;
   }
 
-  if (result.data.length === 0) {
-    proceduresList.innerHTML = "<p>No hay procedimientos todavía.</p>";
-    return;
+  proceduresCache = result.data;
+
+  if (
+    selectedProcedureId &&
+    !proceduresCache.some((item) => item.id === selectedProcedureId)
+  ) {
+    selectedProcedureId = "";
   }
 
-  proceduresList.innerHTML = result.data
-    .map((proc) => {
-      const documentLink = proc.documentUrl
-        ? `<a class="doc-link" href="${escapeHtml(normalizeUrl(proc.documentUrl))}" target="_blank" rel="noopener noreferrer">Abrir documento</a>`
-        : "<span class='no-doc'>Sin documento enlazado</span>";
-
-      return `
-        <article class="procedure-card">
-          <div class="procedure-card-header">
-            <div>
-              <h3>${escapeHtml(proc.title)}</h3>
-              <span class="badge">${escapeHtml(proc.category || "Sin categoría")}</span>
-            </div>
-            <div class="card-actions">
-              <button class="edit-btn" data-id="${proc.id}" type="button">Editar</button>
-              <button class="danger-btn" data-id="${proc.id}" type="button">Eliminar</button>
-            </div>
-          </div>
-
-          <p><strong>Descripción:</strong> ${escapeHtml(proc.description)}</p>
-          <p><strong>Pasos:</strong></p>
-          <pre>${escapeHtml(proc.steps)}</pre>
-
-          <div class="procedure-card-footer">
-            ${documentLink}
-          </div>
-        </article>
-      `;
-    })
-    .join("");
-
-  const deleteButtons = document.querySelectorAll(".danger-btn");
-  deleteButtons.forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const id = btn.dataset.id;
-      const confirmed = confirm("¿Seguro que quieres eliminar este procedimiento?");
-      if (!confirmed) return;
-
-      const result = await deleteProcedure(id);
-
-      if (!result.ok) {
-        alert(`Error al eliminar: ${result.error}`);
-        return;
-      }
-
-      if (editingIdInput.value === id) {
-        setFormModeCreate();
-      }
-
-      await loadProcedures();
-    });
-  });
-
-  const editButtons = document.querySelectorAll(".edit-btn");
-  editButtons.forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const id = btn.dataset.id;
-      await startEditProcedure(id);
-    });
-  });
+  renderProceduresList();
 }
 
 if (procedureForm) {
@@ -176,8 +235,12 @@ if (procedureForm) {
 
     if (id) {
       result = await updateProcedure(id, payload);
+      selectedProcedureId = id;
     } else {
       result = await createProcedure(payload);
+      if (result.ok) {
+        selectedProcedureId = result.id;
+      }
     }
 
     if (!result.ok) {
