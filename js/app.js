@@ -2,6 +2,8 @@ import { logoutUser, watchAuthState } from "./auth.js";
 import {
   createProcedure,
   getProcedures,
+  getProcedureById,
+  updateProcedure,
   deleteProcedure
 } from "./firestore.js";
 
@@ -9,6 +11,10 @@ const procedureForm = document.getElementById("procedureForm");
 const proceduresList = document.getElementById("proceduresList");
 const logoutBtn = document.getElementById("logoutBtn");
 const currentUserBox = document.getElementById("currentUser");
+const formTitle = document.getElementById("formTitle");
+const submitBtn = document.getElementById("submitBtn");
+const cancelEditBtn = document.getElementById("cancelEditBtn");
+const editingIdInput = document.getElementById("editingId");
 
 function escapeHtml(text) {
   if (!text) return "";
@@ -24,14 +30,45 @@ function normalizeUrl(url) {
   if (!url) return "";
   const trimmed = url.trim();
 
-  if (
-    trimmed.startsWith("http://") ||
-    trimmed.startsWith("https://")
-  ) {
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
     return trimmed;
   }
 
   return `https://${trimmed}`;
+}
+
+function setFormModeCreate() {
+  editingIdInput.value = "";
+  formTitle.textContent = "Nuevo procedimiento";
+  submitBtn.textContent = "Guardar procedimiento";
+  cancelEditBtn.hidden = true;
+  procedureForm.reset();
+}
+
+function fillForm(procedure) {
+  document.getElementById("title").value = procedure.title || "";
+  document.getElementById("category").value = procedure.category || "";
+  document.getElementById("description").value = procedure.description || "";
+  document.getElementById("steps").value = procedure.steps || "";
+  document.getElementById("documentUrl").value = procedure.documentUrl || "";
+  editingIdInput.value = procedure.id || "";
+
+  formTitle.textContent = "Editar procedimiento";
+  submitBtn.textContent = "Guardar cambios";
+  cancelEditBtn.hidden = false;
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function startEditProcedure(id) {
+  const result = await getProcedureById(id);
+
+  if (!result.ok) {
+    alert(`Error al cargar el procedimiento: ${result.error}`);
+    return;
+  }
+
+  fillForm(result.data);
 }
 
 async function loadProcedures() {
@@ -62,7 +99,10 @@ async function loadProcedures() {
               <h3>${escapeHtml(proc.title)}</h3>
               <span class="badge">${escapeHtml(proc.category || "Sin categoría")}</span>
             </div>
-            <button class="danger-btn" data-id="${proc.id}">Eliminar</button>
+            <div class="card-actions">
+              <button class="edit-btn" data-id="${proc.id}" type="button">Editar</button>
+              <button class="danger-btn" data-id="${proc.id}" type="button">Eliminar</button>
+            </div>
           </div>
 
           <p><strong>Descripción:</strong> ${escapeHtml(proc.description)}</p>
@@ -91,7 +131,19 @@ async function loadProcedures() {
         return;
       }
 
+      if (editingIdInput.value === id) {
+        setFormModeCreate();
+      }
+
       await loadProcedures();
+    });
+  });
+
+  const editButtons = document.querySelectorAll(".edit-btn");
+  editButtons.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      await startEditProcedure(id);
     });
   });
 }
@@ -100,6 +152,7 @@ if (procedureForm) {
   procedureForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
+    const id = editingIdInput.value.trim();
     const title = document.getElementById("title").value.trim();
     const category = document.getElementById("category").value.trim();
     const description = document.getElementById("description").value.trim();
@@ -111,21 +164,35 @@ if (procedureForm) {
       return;
     }
 
-    const result = await createProcedure({
+    const payload = {
       title,
       category,
       description,
       steps,
       documentUrl
-    });
+    };
+
+    let result;
+
+    if (id) {
+      result = await updateProcedure(id, payload);
+    } else {
+      result = await createProcedure(payload);
+    }
 
     if (!result.ok) {
       alert(`Error al guardar: ${result.error}`);
       return;
     }
 
-    procedureForm.reset();
+    setFormModeCreate();
     await loadProcedures();
+  });
+}
+
+if (cancelEditBtn) {
+  cancelEditBtn.addEventListener("click", () => {
+    setFormModeCreate();
   });
 }
 
@@ -155,6 +222,7 @@ watchAuthState((user) => {
   }
 
   if (proceduresList) {
+    setFormModeCreate();
     loadProcedures();
   }
 });

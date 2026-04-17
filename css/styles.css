@@ -237,3 +237,25 @@ button {
     align-items: flex-start;
   }
 }
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.edit-btn {
+  background: #2d7cf3;
+  color: white;
+  margin-top: 0;
+}
+
+.edit-btn:hover {
+  background: #1f66cf;
+}
