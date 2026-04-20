@@ -242,21 +242,29 @@ html:not(.light) .brand-mark { color: #041a0e; }
 
 /* ── Brand mark: versión logo imagen ── */
 .brand-mark--logo {
-  width: 100px;
-  height: 100px;
+  /* 1. Cambiamos de tamaño fijo a tamaño basado en contenido */
+  width: fit-content; 
+  height: auto;
+  min-width: 120px; /* Un poco más grande para que las letras respiren */
+  
   background: #ffffff;
-  border-radius: 18px;
-  padding: 10px;
-  box-shadow: 0 8px 28px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.1);
-  font-size: 0;
-  overflow: hidden;
+  border-radius: 12px; /* Menos redondeado para que no parezca tanto una 'App' */
+  padding: 15px 25px;  /* Más espacio a los lados que arriba/abajo */
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  box-shadow: 0 8px 28px rgba(0,0,0,0.15); /* Sombra más suave para que no pese tanto */
 }
 
 .brand-mark--logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  /* 2. Controlamos que la imagen use el espacio disponible sin perder calidad */
   display: block;
+  width: 100%;
+  max-width: 180px; /* Ajusta este valor según qué tan grandes quieras las letras */
+  height: auto;
+  object-fit: contain;
 }
 
 .brand-name   { font-size: 44px; font-weight: 700; letter-spacing: -1.8px; line-height: 1.05; color: #ddeeff; margin-bottom: 16px; }
