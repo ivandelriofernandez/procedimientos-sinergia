@@ -1,15 +1,18 @@
 import { logoutUser, watchAuthState } from "./auth.js";
 import { getProcedureById, updateProcedure, deleteProcedure } from "./firestore.js";
 import { initImageResizer } from "./image-resizer.js";
+import { initThemeToggle } from "./theme.js";
 
-const currentUserBox      = document.getElementById("currentUser");
-const procedureFullView   = document.getElementById("procedureFullView");
-const procedureEditPanel  = document.getElementById("procedureEditPanel");
-const logoutBtn           = document.getElementById("logoutBtn");
-const editProcedureBtn    = document.getElementById("editProcedureBtn");
-const deleteProcedureBtn  = document.getElementById("deleteProcedureBtn");
-const editProcedureForm   = document.getElementById("editProcedureForm");
-const cancelEditBtn       = document.getElementById("cancelEditBtn");
+initThemeToggle("themeBtn");
+
+const currentUserBox     = document.getElementById("currentUser");
+const procedureFullView  = document.getElementById("procedureFullView");
+const procedureEditPanel = document.getElementById("procedureEditPanel");
+const logoutBtn          = document.getElementById("logoutBtn");
+const editProcedureBtn   = document.getElementById("editProcedureBtn");
+const deleteProcedureBtn = document.getElementById("deleteProcedureBtn");
+const editProcedureForm  = document.getElementById("editProcedureForm");
+const cancelEditBtn      = document.getElementById("cancelEditBtn");
 
 const editQuill = new Quill("#editStepsEditor", {
   theme: "snow",
@@ -26,12 +29,9 @@ const editQuill = new Quill("#editStepsEditor", {
   }
 });
 
-/* Activate image resizer for the edit editor */
 const editResizer = initImageResizer(editQuill);
 
 let currentProcedure = null;
-
-/* ── Helpers ── */
 
 function escapeHtml(text) {
   if (!text) return "";
@@ -67,32 +67,23 @@ function formatTimestamp(ts) {
   } catch { return null; }
 }
 
-/* ── Render procedure (redesigned) ── */
-
 function renderProcedure(procedure) {
-  const category  = escapeHtml(procedure.category || "Sin categoría");
-  const title     = escapeHtml(procedure.title);
-  const desc      = escapeHtml(procedure.description);
-  const dateStr   = formatTimestamp(procedure.updatedAt) || formatTimestamp(procedure.createdAt);
+  const category = escapeHtml(procedure.category || "Sin categoría");
+  const title    = escapeHtml(procedure.title);
+  const desc     = escapeHtml(procedure.description);
+  const dateStr  = formatTimestamp(procedure.updatedAt) || formatTimestamp(procedure.createdAt);
 
   const docChip = procedure.documentUrl
     ? `<a class="proc-ext-link"
           href="${escapeHtml(normalizeUrl(procedure.documentUrl))}"
-          target="_blank"
-          rel="noopener noreferrer">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-          <polyline points="15 3 21 3 21 9"/>
-          <line x1="10" y1="14" x2="21" y2="3"/>
-        </svg>
+          target="_blank" rel="noopener noreferrer">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         Documento externo
       </a>`
     : "";
 
   procedureFullView.innerHTML = `
     <article class="proc-view">
-
       <header class="proc-header">
         <div class="proc-meta-row">
           <span class="badge">${category}</span>
@@ -102,17 +93,13 @@ function renderProcedure(procedure) {
         <h2 class="proc-title">${title}</h2>
         <p class="proc-desc">${desc}</p>
       </header>
-
       <div class="proc-body">
         <p class="proc-steps-label">Pasos del procedimiento</p>
         <div class="rich-content">${getStepsHtml(procedure)}</div>
       </div>
-
     </article>
   `;
 }
-
-/* ── Fill edit form ── */
 
 function fillEditForm(procedure) {
   document.getElementById("editTitle").value       = procedure.title       || "";
@@ -126,8 +113,6 @@ function isEditEditorEmpty() {
   return !editQuill.getText().trim() && !editQuill.root.querySelector("img");
 }
 
-/* ── Edit mode ── */
-
 function openEditMode() {
   if (!currentProcedure) return;
   fillEditForm(currentProcedure);
@@ -138,30 +123,25 @@ function openEditMode() {
 
 function closeEditMode() {
   editResizer.hide();
-  procedureEditPanel.hidden = false;
   procedureEditPanel.hidden = true;
   editProcedureBtn.hidden   = false;
   editProcedureForm.reset();
   editQuill.setContents([]);
 }
 
-/* ── Load ── */
-
 async function loadProcedure() {
   const id = getProcedureIdFromUrl();
-
   if (!id) {
     procedureFullView.innerHTML = "<p>No se ha indicado ningún procedimiento.</p>";
-    editProcedureBtn.disabled  = true;
+    editProcedureBtn.disabled = true;
     deleteProcedureBtn.disabled = true;
     return;
   }
 
   const result = await getProcedureById(id);
-
   if (!result.ok) {
     procedureFullView.innerHTML = `<p>Error al cargar: ${escapeHtml(result.error)}</p>`;
-    editProcedureBtn.disabled   = true;
+    editProcedureBtn.disabled = true;
     deleteProcedureBtn.disabled = true;
     return;
   }
@@ -170,14 +150,11 @@ async function loadProcedure() {
   renderProcedure(currentProcedure);
 }
 
-/* ── Events ── */
-
 editProcedureBtn?.addEventListener("click", openEditMode);
 cancelEditBtn?.addEventListener("click", closeEditMode);
 
 editProcedureForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
-
   const id          = getProcedureIdFromUrl();
   const title       = document.getElementById("editTitle").value.trim();
   const category    = document.getElementById("editCategory").value.trim();
@@ -191,7 +168,6 @@ editProcedureForm?.addEventListener("submit", async (event) => {
   }
 
   const result = await updateProcedure(id, { title, category, description, stepsHtml, documentUrl });
-
   if (!result.ok) { alert(`Error al actualizar: ${result.error}`); return; }
 
   const updated = await getProcedureById(id);
@@ -205,7 +181,6 @@ editProcedureForm?.addEventListener("submit", async (event) => {
 deleteProcedureBtn?.addEventListener("click", async () => {
   const id = getProcedureIdFromUrl();
   if (!confirm("¿Seguro que quieres eliminar este procedimiento?")) return;
-
   const deleteResult = await deleteProcedure(id);
   if (!deleteResult.ok) { alert(`Error al eliminar: ${deleteResult.error}`); return; }
   window.location.href = "./app.html";

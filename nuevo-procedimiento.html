@@ -4,23 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sinergia FP | Nuevo procedimiento</title>
+  <script>(function(){if(localStorage.getItem('sfp-theme')==='light')document.documentElement.classList.add('light')})();</script>
   <link rel="stylesheet" href="./css/styles.css" />
   <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet" />
-  <link rel="icon" type="image/webp" href="./assets/favicon-sinergia.webp">
 </head>
 <body class="word-body">
 
-  <!-- Topbar tipo Office -->
   <header class="word-topbar">
     <div class="word-topbar-left">
       <a href="./app.html" class="word-back-btn">← Volver</a>
       <span class="word-app-name">Sinergia FP</span>
     </div>
-
     <div class="word-topbar-center">
       <span id="docNameDisplay" class="word-doc-name">Nuevo procedimiento</span>
     </div>
-
     <div class="word-topbar-right">
       <p id="currentUser" class="word-current-user"></p>
       <button id="saveProcedureBtn" type="button" class="word-save-btn">
@@ -31,11 +28,11 @@
         </svg>
         Guardar
       </button>
+      <button id="themeBtn" class="word-theme-btn" type="button"></button>
       <button id="logoutBtn" class="word-logout-btn" type="button">Salir</button>
     </div>
   </header>
 
-  <!-- Ribbon de herramientas -->
   <div class="word-ribbon-wrap">
     <div id="quillToolbar" class="word-ribbon">
       <span class="ql-formats">
@@ -74,22 +71,11 @@
     </div>
   </div>
 
-  <!-- Área del folio -->
   <main class="word-canvas">
     <div id="saveMessage" class="word-save-message" hidden></div>
-
     <div class="word-page">
-
-      <!-- Metadatos -->
       <div class="word-page-meta">
-        <input
-          type="text"
-          id="title"
-          class="word-title-input"
-          placeholder="Título del procedimiento"
-          maxlength="120"
-        />
-
+        <input type="text" id="title" class="word-title-input" placeholder="Título del procedimiento" maxlength="120" />
         <div class="word-meta-row">
           <div class="word-meta-field">
             <label for="category" class="word-meta-label">Categoría</label>
@@ -101,29 +87,17 @@
           </div>
         </div>
       </div>
-
       <div class="word-page-divider"></div>
-
-      <!-- Descripción -->
       <div class="word-page-section">
         <p class="word-section-label">Descripción breve</p>
-        <textarea
-          id="description"
-          class="word-description-input"
-          rows="3"
-          placeholder="Resume en pocas líneas de qué trata este procedimiento…"
-        ></textarea>
+        <textarea id="description" class="word-description-input" rows="3" placeholder="Resume en pocas líneas de qué trata este procedimiento…"></textarea>
       </div>
-
       <div class="word-page-divider"></div>
-
-      <!-- Pasos (Quill) -->
       <div class="word-page-section">
         <p class="word-section-label">Pasos del procedimiento</p>
         <div id="stepsEditor" class="word-quill-editor"></div>
         <p class="word-editor-hint">Escribe, pega texto con formato e imágenes directamente en el editor.</p>
       </div>
-
     </div>
   </main>
 

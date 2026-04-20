@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sinergia FP | Procedimiento</title>
+  <script>(function(){if(localStorage.getItem('sfp-theme')==='light')document.documentElement.classList.add('light')})();</script>
   <link rel="stylesheet" href="./css/styles.css" />
   <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet" />
-  <link rel="icon" type="image/webp" href="./assets/favicon-sinergia.webp">
 </head>
 <body>
   <header class="topbar">
@@ -14,11 +14,11 @@
       <h1>Sinergia FP · Procedimiento</h1>
       <p id="currentUser" class="current-user"></p>
     </div>
-
     <div class="topbar-actions">
       <a href="./app.html" class="secondary-btn topbar-link">← Volver</a>
       <button id="editProcedureBtn" class="edit-btn" type="button">Editar</button>
       <button id="deleteProcedureBtn" class="danger-btn" type="button">Eliminar</button>
+      <button id="themeBtn" class="theme-btn" type="button"></button>
       <button id="logoutBtn" class="secondary-btn" type="button">Cerrar sesión</button>
     </div>
   </header>
@@ -31,7 +31,6 @@
     <section id="procedureEditPanel" class="procedure-edit-panel" hidden>
       <div class="panel">
         <h2>Editar procedimiento</h2>
-
         <form id="editProcedureForm" class="procedure-form">
           <label for="editTitle">Título</label>
           <input type="text" id="editTitle" required />

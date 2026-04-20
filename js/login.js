@@ -1,4 +1,7 @@
 import { loginUser, watchAuthState } from "./auth.js";
+import { initThemeToggle } from "./theme.js";
+
+initThemeToggle("themeBtn");
 
 const loginForm    = document.getElementById("loginForm");
 const loginMessage = document.getElementById("loginMessage");

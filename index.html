@@ -4,38 +4,35 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sinergia FP | Acceso IT</title>
+  <script>(function(){if(localStorage.getItem('sfp-theme')==='light')document.documentElement.classList.add('light')})();</script>
   <link rel="stylesheet" href="./css/styles.css" />
-  <link rel="icon" type="image/webp" href="./assets/favicon-sinergia.webp">
 </head>
 <body class="login-body">
 
-  <!-- Panel izquierdo de marca -->
   <aside class="login-brand-panel">
     <div class="brand-top">
-      <!--<div class="brand-mark">S</div>-->
-      <div class="logo-sinergia">
-        <img src="./assets/logo-sinergia.webp" alt="Sinergia FP" />
-      </div>
-      <!--<h1 class="brand-name">Sinergia<br><em>FP</em></h1>-->
-      <br><br>
+      <div class="brand-mark">S</div>
+      <h1 class="brand-name">Sinergia<br><em>FP</em></h1>
       <p class="brand-tagline">Sistema centralizado de procedimientos para el departamento IT.</p>
-
       <ul class="brand-features">
         <li>Procedimientos documentados y accesibles</li>
         <li>Editor enriquecido con soporte de imágenes</li>
         <li>Acceso seguro basado en Firebase</li>
       </ul>
     </div>
-
     <p class="brand-footer">© 2025 Sinergia FP · Uso interno</p>
   </aside>
 
-  <!-- Panel derecho con formulario -->
   <main class="login-form-panel">
     <div class="login-card">
-      <p class="login-eyebrow">Portal IT</p>
-      <h2 class="login-heading">Bienvenido de nuevo</h2>
-      <p class="login-sub">Introduce tus credenciales para acceder.</p>
+      <div class="login-top-row">
+        <div>
+          <p class="login-eyebrow">Portal IT</p>
+          <h2 class="login-heading">Bienvenido de nuevo</h2>
+          <p class="login-sub">Introduce tus credenciales para acceder.</p>
+        </div>
+        <button id="themeBtn" class="theme-btn" type="button"></button>
+      </div>
 
       <div id="loginMessage" class="message"></div>
 
@@ -44,12 +41,10 @@
           <label for="loginEmail">Email</label>
           <input type="email" id="loginEmail" placeholder="tu@sinergiaFP.com" required autocomplete="email" />
         </div>
-
         <div class="login-field">
           <label for="loginPassword">Contraseña</label>
           <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password" />
         </div>
-
         <button type="submit" class="primary-btn login-submit-btn">Entrar</button>
       </form>
     </div>
