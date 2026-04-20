@@ -1,17 +1,20 @@
 import { logoutUser, watchAuthState } from "./auth.js";
 import { getProcedures } from "./firestore.js";
+import { initThemeToggle } from "./theme.js";
 
-const listEl        = document.getElementById("proceduresList");
-const logoutBtn     = document.getElementById("logoutBtn");
+initThemeToggle("themeBtn");
+
+const listEl         = document.getElementById("proceduresList");
+const logoutBtn      = document.getElementById("logoutBtn");
 const currentUserBox = document.getElementById("currentUser");
-const searchInput   = document.getElementById("searchInput");
-const clearSearch   = document.getElementById("clearSearch");
-const categoryNav   = document.getElementById("categoryNav");
-const statTotal     = document.getElementById("statTotal");
+const searchInput    = document.getElementById("searchInput");
+const clearSearch    = document.getElementById("clearSearch");
+const categoryNav    = document.getElementById("categoryNav");
+const statTotal      = document.getElementById("statTotal");
 
-let allProcedures   = [];
-let activeCategory  = "all";
-let searchQuery     = "";
+let allProcedures  = [];
+let activeCategory = "all";
+let searchQuery    = "";
 
 /* ── Helpers ── */
 
@@ -37,7 +40,7 @@ function normalizeCategory(cat) {
   return (cat || "Sin categoría").trim() || "Sin categoría";
 }
 
-/* ── Build category sidebar ── */
+/* ── Sidebar ── */
 
 function buildSidebar(procedures) {
   const counts = {};
@@ -48,16 +51,16 @@ function buildSidebar(procedures) {
 
   const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
 
-  const allBtn = buildCatBtn("all", "Todos", procedures.length, activeCategory === "all");
-  const catBtns = sorted.map(([cat, n]) => buildCatBtn(cat, cat, n, activeCategory === cat));
-
   categoryNav.innerHTML = `<p class="sidebar-nav-label">Categorías</p>`;
-  categoryNav.appendChild(allBtn);
+  categoryNav.appendChild(buildCatBtn("all", "Todos", procedures.length, activeCategory === "all"));
+
   if (sorted.length > 0) {
     const divider = document.createElement("hr");
     divider.className = "sidebar-divider";
     categoryNav.appendChild(divider);
-    catBtns.forEach(b => categoryNav.appendChild(b));
+    sorted.forEach(([cat, n]) =>
+      categoryNav.appendChild(buildCatBtn(cat, cat, n, activeCategory === cat))
+    );
   }
 }
 
@@ -77,13 +80,13 @@ function buildCatBtn(value, label, count, isActive) {
   return btn;
 }
 
-/* ── Render procedure cards ── */
+/* ── Render ── */
 
 function render() {
   const q = searchQuery.toLowerCase();
 
-  let filtered = allProcedures.filter(p => {
-    const matchCat = activeCategory === "all" || normalizeCategory(p.category) === activeCategory;
+  const filtered = allProcedures.filter(p => {
+    const matchCat    = activeCategory === "all" || normalizeCategory(p.category) === activeCategory;
     const matchSearch = !q
       || p.title.toLowerCase().includes(q)
       || (p.description || "").toLowerCase().includes(q)
@@ -100,7 +103,8 @@ function render() {
     return;
   }
 
-  /* Group by category only when viewing "Todos" and no search */
+  listEl.className = "proc-grid";
+
   if (activeCategory === "all" && !q) {
     renderGrouped(filtered);
   } else {
@@ -117,7 +121,7 @@ function renderGrouped(procedures) {
   });
 
   const sorted = Object.entries(groups).sort((a, b) => b[1].length - a[1].length);
-  listEl.className = "proc-grid";
+
   listEl.innerHTML = sorted.map(([cat, items]) => `
     <section class="proc-group">
       <h3 class="proc-group-title">
@@ -132,19 +136,14 @@ function renderGrouped(procedures) {
 }
 
 function renderFlat(procedures) {
-  listEl.className = "proc-grid";
-  listEl.innerHTML = `
-    <div class="proc-cards">
-      ${procedures.map(cardHtml).join("")}
-    </div>
-  `;
+  listEl.innerHTML = `<div class="proc-cards">${procedures.map(cardHtml).join("")}</div>`;
 }
 
 function cardHtml(proc) {
   const excerpt = escapeHtml(getExcerpt(proc.stepsHtml || proc.description));
-  const cat = escapeHtml(normalizeCategory(proc.category));
-  const title = escapeHtml(proc.title);
-  const hasDoc = !!proc.documentUrl;
+  const cat     = escapeHtml(normalizeCategory(proc.category));
+  const title   = escapeHtml(proc.title);
+  const hasDoc  = !!proc.documentUrl;
 
   return `
     <a class="proc-card" href="./procedimiento.html?id=${encodeURIComponent(proc.id)}">
@@ -167,7 +166,6 @@ function cardHtml(proc) {
 
 async function loadProcedures() {
   listEl.innerHTML = `<p class="list-placeholder">Cargando procedimientos…</p>`;
-
   const result = await getProcedures();
 
   if (!result.ok) {
@@ -176,9 +174,7 @@ async function loadProcedures() {
   }
 
   allProcedures = result.data;
-
   statTotal.textContent = `${allProcedures.length} procedimiento${allProcedures.length !== 1 ? "s" : ""}`;
-
   buildSidebar(allProcedures);
   render();
 }
