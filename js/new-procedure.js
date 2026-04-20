@@ -40,11 +40,53 @@ function showSaveMessage(text, isError = false) {
   setTimeout(() => { saveMessage.hidden = true; }, 4500);
 }
 
+// ---------------------------------
+// Arreglar color
+
+function sanitizeEditorHtml(html) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = html;
+
+  // Recorre todos los nodos con atributo style
+  wrapper.querySelectorAll("[style]").forEach((el) => {
+    el.style.removeProperty("color");
+    el.style.removeProperty("background");
+    el.style.removeProperty("background-color");
+
+    // Si tras limpiar no queda ningún estilo, elimina el atributo style
+    if (!el.getAttribute("style")?.trim()) {
+      el.removeAttribute("style");
+    }
+  });
+
+  // Elimina clases de Quill relacionadas con color/fondo si existieran
+  wrapper.querySelectorAll("*").forEach((el) => {
+    el.classList.forEach((cls) => {
+      if (cls.startsWith("ql-color-") || cls.startsWith("ql-bg-")) {
+        el.classList.remove(cls);
+      }
+    });
+
+    if (!el.className.trim()) {
+      el.removeAttribute("class");
+    }
+  });
+
+  return wrapper.innerHTML.trim();
+}
+
+
+
+
+// ---------------------------------
+
 async function handleSave() {
   const title       = titleInput?.value.trim() || "";
   const category    = document.getElementById("category")?.value.trim() || "";
   const description = document.getElementById("description")?.value.trim() || "";
-  const stepsHtml   = quill.root.innerHTML.trim();
+  // const stepsHtml   = quill.root.innerHTML.trim();
+  const rawStepsHtml = quill.root.innerHTML.trim();
+  const stepsHtml    = sanitizeEditorHtml(rawStepsHtml);
   const documentUrl = document.getElementById("documentUrl")?.value.trim() || "";
 
   if (!title)          { showSaveMessage("El título es obligatorio.", true); titleInput?.focus(); return; }
