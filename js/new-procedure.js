@@ -1,5 +1,5 @@
 import { logoutUser, watchAuthState } from "./auth.js";
-import { createProcedure } from "./firestore.js";
+import { createProcedure, getProcedures } from "./firestore.js";
 import { initImageResizer } from "./image-resizer.js";
 import { initThemeToggle } from "./theme.js";
 
@@ -12,12 +12,96 @@ const docNameDisplay   = document.getElementById("docNameDisplay");
 const titleInput       = document.getElementById("title");
 const saveMessage      = document.getElementById("saveMessage");
 
+/* ── Category select elements ── */
+const categorySelect = document.getElementById("categorySelect");
+const newCatWrap     = document.getElementById("newCatWrap");
+const categoryNew    = document.getElementById("categoryNew");
+const cancelNewCat   = document.getElementById("cancelNewCat");
+
+const NEW_VALUE = "__new__";
+
+/* ── Populate the category dropdown from existing procedures ── */
+async function loadCategories() {
+  const result = await getProcedures();
+  const categories = new Set();
+
+  if (result.ok) {
+    result.data.forEach(p => {
+      const cat = (p.category || "").trim();
+      if (cat) categories.add(cat);
+    });
+  }
+
+  const sorted = [...categories].sort((a, b) => a.localeCompare(b, "es"));
+
+  categorySelect.innerHTML = "";
+
+  /* Placeholder */
+  const placeholder = document.createElement("option");
+  placeholder.value    = "";
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  placeholder.textContent = "Selecciona una categoría…";
+  categorySelect.appendChild(placeholder);
+
+  /* Existing categories */
+  sorted.forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value       = cat;
+    opt.textContent = cat;
+    categorySelect.appendChild(opt);
+  });
+
+  /* Separator + Nueva option */
+  if (sorted.length > 0) {
+    const sep = document.createElement("option");
+    sep.disabled     = true;
+    sep.textContent  = "──────────────";
+    categorySelect.appendChild(sep);
+  }
+
+  const newOpt = document.createElement("option");
+  newOpt.value       = NEW_VALUE;
+  newOpt.textContent = "+ Nueva categoría…";
+  categorySelect.appendChild(newOpt);
+}
+
+/* ── Show/hide new-category input ── */
+categorySelect.addEventListener("change", () => {
+  if (categorySelect.value === NEW_VALUE) {
+    newCatWrap.hidden = false;
+    categoryNew.value = "";
+    categoryNew.focus();
+  } else {
+    newCatWrap.hidden = true;
+    categoryNew.value = "";
+  }
+});
+
+cancelNewCat.addEventListener("click", () => {
+  newCatWrap.hidden        = true;
+  categoryNew.value        = "";
+  categorySelect.value     = "";
+  /* Reset to placeholder */
+  categorySelect.options[0].selected = true;
+});
+
+/* ── Resolve the final category value ── */
+function getCategory() {
+  if (categorySelect.value === NEW_VALUE) {
+    return categoryNew.value.trim();
+  }
+  return categorySelect.value.trim();
+}
+
+/* ── Title → doc name ── */
 if (titleInput && docNameDisplay) {
   titleInput.addEventListener("input", () => {
     docNameDisplay.textContent = titleInput.value.trim() || "Nuevo procedimiento";
   });
 }
 
+/* ── Quill ── */
 const quill = new Quill("#stepsEditor", {
   theme: "snow",
   placeholder: "Escribe aquí los pasos del procedimiento…",
@@ -30,28 +114,57 @@ function isEditorEmpty() {
   return !quill.getText().trim() && !quill.root.querySelector("img");
 }
 
+/* ── Save message banner ── */
 function showSaveMessage(text, isError = false) {
   if (!saveMessage) return;
   saveMessage.textContent = text;
-  saveMessage.className = isError
+  saveMessage.className   = isError
     ? "word-save-message word-save-message--error"
     : "word-save-message word-save-message--ok";
   saveMessage.hidden = false;
   setTimeout(() => { saveMessage.hidden = true; }, 4500);
 }
 
+/* ── Save ── */
 async function handleSave() {
-  const title       = titleInput?.value.trim() || "";
-  const category    = document.getElementById("category")?.value.trim() || "";
+  const title       = titleInput?.value.trim()                    || "";
+  const category    = getCategory();
   const description = document.getElementById("description")?.value.trim() || "";
   const stepsHtml   = quill.root.innerHTML.trim();
   const documentUrl = document.getElementById("documentUrl")?.value.trim() || "";
 
-  if (!title)          { showSaveMessage("El título es obligatorio.", true); titleInput?.focus(); return; }
-  if (!description)    { showSaveMessage("La descripción es obligatoria.", true); document.getElementById("description")?.focus(); return; }
-  if (isEditorEmpty()) { showSaveMessage("Los pasos son obligatorios.", true); return; }
+  if (!title) {
+    showSaveMessage("El título es obligatorio.", true);
+    titleInput?.focus();
+    return;
+  }
 
-  if (saveProcedureBtn) { saveProcedureBtn.disabled = true; saveProcedureBtn.textContent = "Guardando…"; }
+  if (!category) {
+    showSaveMessage(
+      categorySelect.value === NEW_VALUE
+        ? "Escribe el nombre de la nueva categoría."
+        : "Selecciona una categoría.",
+      true
+    );
+    categorySelect.value === NEW_VALUE ? categoryNew.focus() : categorySelect.focus();
+    return;
+  }
+
+  if (!description) {
+    showSaveMessage("La descripción es obligatoria.", true);
+    document.getElementById("description")?.focus();
+    return;
+  }
+
+  if (isEditorEmpty()) {
+    showSaveMessage("Los pasos son obligatorios.", true);
+    return;
+  }
+
+  if (saveProcedureBtn) {
+    saveProcedureBtn.disabled    = true;
+    saveProcedureBtn.textContent = "Guardando…";
+  }
 
   const result = await createProcedure({ title, category, description, stepsHtml, documentUrl });
 
@@ -59,7 +172,13 @@ async function handleSave() {
     showSaveMessage(`Error al guardar: ${result.error}`, true);
     if (saveProcedureBtn) {
       saveProcedureBtn.disabled = false;
-      saveProcedureBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Guardar`;
+      saveProcedureBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg> Guardar`;
     }
     return;
   }
@@ -78,4 +197,5 @@ logoutBtn?.addEventListener("click", async () => {
 watchAuthState((user) => {
   if (!user) { window.location.href = "index.html"; return; }
   if (currentUserBox) currentUserBox.textContent = user.email;
+  loadCategories();
 });

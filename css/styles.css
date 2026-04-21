@@ -129,31 +129,18 @@ html.light .edit-btn, html.light .edit-inline-btn { background: rgba(26,127,212,
 
 /* ── Botón de tema ── */
 .theme-btn {
-  background: transparent;
-  border: 1px solid var(--border-strong);
-  color: var(--text-soft);
-  border-radius: var(--r-md);
-  padding: 8px 10px;
-  line-height: 0;
+  background: transparent; border: 1px solid var(--border-strong); color: var(--text-soft);
+  border-radius: var(--r-md); padding: 8px 10px; line-height: 0;
   transition: background 0.18s, color 0.18s, border-color 0.18s;
 }
 .theme-btn:hover { background: var(--surface-3); color: var(--text); border-color: var(--border-soft); }
 .theme-btn:active { transform: scale(0.93); }
 
 .word-theme-btn {
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.15);
-  color: #87b4cf;
-  border-radius: var(--r-sm);
-  padding: 7px 9px;
-  line-height: 0;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-  font-family: inherit;
-  font-size: 13px;
-  margin-top: 0;
-  display: inline-flex;
-  align-items: center;
+  background: transparent; border: 1px solid rgba(255,255,255,0.15); color: #87b4cf;
+  border-radius: var(--r-sm); padding: 7px 9px; line-height: 0;
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+  font-family: inherit; font-size: 13px; margin-top: 0; display: inline-flex; align-items: center;
 }
 .word-theme-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
 
@@ -204,7 +191,6 @@ textarea { resize: vertical; line-height: 1.6; }
   transition: background 0.25s, border-color 0.25s;
 }
 html.light .topbar { background: rgba(240,245,250,0.92); border-bottom-color: var(--border-soft); }
-
 .topbar h1 { font-size: 15px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 10px; }
 .topbar h1::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
 .current-user { font-size: 12px; color: var(--text-muted); font-weight: 400; margin-top: 2px; }
@@ -228,46 +214,13 @@ html.light .topbar { background: rgba(240,245,250,0.92); border-bottom-color: va
 
 .brand-top { position: relative; z-index: 1; }
 
-/* ── Brand mark: versión icono (letra "S") ── */
-.brand-mark {
-  width: 54px; height: 54px;
-  background: var(--accent);
-  border-radius: 15px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px; font-weight: 800; color: #fff;
-  box-shadow: 0 8px 28px var(--accent-glow);
-  margin-bottom: 36px;
-}
+.brand-mark { width: 54px; height: 54px; background: var(--accent); border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: #fff; box-shadow: 0 8px 28px var(--accent-glow); margin-bottom: 36px; }
 html:not(.light) .brand-mark { color: #041a0e; }
 
-/* ── Brand mark: versión logo imagen ── */
-.brand-mark--logo {
-  /* 1. Cambiamos de tamaño fijo a tamaño basado en contenido */
-  width: fit-content; 
-  height: auto;
-  min-width: 120px; /* Un poco más grande para que las letras respiren */
-  
-  background: #ffffff;
-  border-radius: 12px; /* Menos redondeado para que no parezca tanto una 'App' */
-  padding: 15px 25px;  /* Más espacio a los lados que arriba/abajo */
-  
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  box-shadow: 0 8px 28px rgba(0,0,0,0.15); /* Sombra más suave para que no pese tanto */
-}
+.brand-mark--logo { width: 100px; height: 100px; background: #ffffff; border-radius: 18px; padding: 10px; box-shadow: 0 8px 28px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.1); font-size: 0; overflow: hidden; }
+.brand-mark--logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
 
-.brand-mark--logo img {
-  /* 2. Controlamos que la imagen use el espacio disponible sin perder calidad */
-  display: block;
-  width: 100%;
-  max-width: 180px; /* Ajusta este valor según qué tan grandes quieras las letras */
-  height: auto;
-  object-fit: contain;
-}
-
-.brand-name   { font-size: 44px; font-weight: 700; letter-spacing: -1.8px; line-height: 1.05; color: #ddeeff; margin-bottom: 16px; }
+.brand-name    { font-size: 44px; font-weight: 700; letter-spacing: -1.8px; line-height: 1.05; color: #ddeeff; margin-bottom: 16px; }
 .brand-name em { font-style: normal; color: var(--accent); }
 .brand-tagline { font-size: 15.5px; color: rgba(220,235,250,0.7); font-weight: 400; line-height: 1.65; max-width: 280px; margin-bottom: 48px; }
 .brand-features { list-style: none; display: flex; flex-direction: column; gap: 14px; }
@@ -277,7 +230,6 @@ html:not(.light) .brand-mark { color: #041a0e; }
 
 .login-form-panel { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 36px; background: var(--bg-alt); transition: background 0.25s; }
 .login-card { width: 100%; max-width: 400px; }
-
 .login-top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 28px; }
 .login-eyebrow { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin-bottom: 8px; }
 .login-heading { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; margin-bottom: 6px; }
@@ -329,7 +281,6 @@ html:not(.light) .brand-mark { color: #041a0e; }
 
 .app-main { padding: 32px 36px 56px; min-height: calc(100vh - var(--topbar-h)); overflow-y: auto; }
 
-/* ── Cards ── */
 .proc-grid { display: flex; flex-direction: column; gap: 32px; }
 .proc-group { display: flex; flex-direction: column; gap: 12px; }
 .proc-group-title { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
@@ -485,6 +436,104 @@ html:not(.light) .word-save-message--error { color: #ffaaaa; }
 .word-quill-editor .ql-editor.ql-blank::before { color: #aac0cd; font-style: italic; }
 .word-quill-editor .ql-editor img { max-width: 100%; border-radius: 6px; margin: 16px 0; display: block; box-shadow: 0 2px 10px rgba(0,0,0,0.09); cursor: default; }
 .word-editor-hint { margin: 8px 0 0; font-size: 12px; color: #8aafc2; font-family: 'Inter', sans-serif; }
+
+/* ════════════════════════════════════════════════════════════
+   CATEGORY SELECT — desplegable de categorías en el folio
+════════════════════════════════════════════════════════════ */
+
+/* Wrapper que agrupa el select + el campo nueva categoría */
+.cat-field-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* El select propiamente dicho — mismo look que word-meta-input */
+.word-meta-select {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #2b4760;
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid #dbe5ec;
+  border-radius: 0;
+  padding: 7px 24px 7px 2px;
+  width: 100%;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  /* Chevron inline SVG como background */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2382a8c2' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  transition: border-color 0.18s;
+}
+
+.word-meta-select:focus {
+  border-bottom-color: #19364f;
+  box-shadow: none;
+  outline: none;
+}
+
+.word-meta-select option {
+  background: #fff;
+  color: #2b4760;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
+
+/* Opción "Nueva categoría" resaltada */
+.word-meta-select option[value="__new__"] {
+  color: #0eaa5c;
+  font-weight: 600;
+}
+
+/* Zona que aparece al elegir "Nueva" */
+.new-cat-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  animation: newCatReveal 0.18s ease;
+}
+
+@keyframes newCatReveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Input de nueva categoría — hereda estilos de word-meta-input pero con borde izquierdo verde */
+.new-cat-input {
+  flex: 1;
+  border-left: 3px solid #0eaa5c !important;
+  background: #f4fbf7 !important;
+  padding-left: 10px !important;
+}
+
+.new-cat-input:focus {
+  border-bottom-color: #0c9450 !important;
+  background: #fff !important;
+}
+
+/* Botón cancelar nueva categoría */
+.new-cat-cancel {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: #b0c4d0;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  margin: 0;
+  transition: color 0.15s, background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.new-cat-cancel:hover { color: #d93535; background: rgba(217,53,53,0.08); }
 
 /* ════════════════════════════════════════════════════════════
    RESPONSIVE

@@ -74,26 +74,62 @@
 
   <main class="word-canvas">
     <div id="saveMessage" class="word-save-message" hidden></div>
+
     <div class="word-page">
       <div class="word-page-meta">
-        <input type="text" id="title" class="word-title-input" placeholder="Título del procedimiento" maxlength="120" />
+        <input
+          type="text"
+          id="title"
+          class="word-title-input"
+          placeholder="Título del procedimiento"
+          maxlength="120"
+        />
+
         <div class="word-meta-row">
+
+          <!-- Categoría: desplegable + campo nueva categoría -->
           <div class="word-meta-field">
-            <label for="category" class="word-meta-label">Categoría</label>
-            <input type="text" id="category" class="word-meta-input" placeholder="Ej: Redes, Soporte, Hardware…" />
+            <label for="categorySelect" class="word-meta-label">Categoría</label>
+            <div class="cat-field-wrap">
+              <select id="categorySelect" class="word-meta-select">
+                <option value="" disabled selected>Cargando…</option>
+              </select>
+              <div id="newCatWrap" class="new-cat-wrap" hidden>
+                <input
+                  type="text"
+                  id="categoryNew"
+                  class="word-meta-input new-cat-input"
+                  placeholder="Nombre de la nueva categoría…"
+                  maxlength="60"
+                  autocomplete="off"
+                />
+                <button type="button" id="cancelNewCat" class="new-cat-cancel" title="Cancelar">✕</button>
+              </div>
+            </div>
           </div>
+
           <div class="word-meta-field">
             <label for="documentUrl" class="word-meta-label">URL documento externo</label>
             <input type="text" id="documentUrl" class="word-meta-input" placeholder="https://…" />
           </div>
+
         </div>
       </div>
+
       <div class="word-page-divider"></div>
+
       <div class="word-page-section">
         <p class="word-section-label">Descripción breve</p>
-        <textarea id="description" class="word-description-input" rows="3" placeholder="Resume en pocas líneas de qué trata este procedimiento…"></textarea>
+        <textarea
+          id="description"
+          class="word-description-input"
+          rows="3"
+          placeholder="Resume en pocas líneas de qué trata este procedimiento…"
+        ></textarea>
       </div>
+
       <div class="word-page-divider"></div>
+
       <div class="word-page-section">
         <p class="word-section-label">Pasos del procedimiento</p>
         <div id="stepsEditor" class="word-quill-editor"></div>
