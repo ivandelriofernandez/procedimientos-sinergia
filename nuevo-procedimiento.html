@@ -76,18 +76,13 @@
     <div id="saveMessage" class="word-save-message" hidden></div>
 
     <div class="word-page">
+
+      <!-- Metadatos -->
       <div class="word-page-meta">
-        <input
-          type="text"
-          id="title"
-          class="word-title-input"
-          placeholder="Título del procedimiento"
-          maxlength="120"
-        />
+        <input type="text" id="title" class="word-title-input"
+               placeholder="Título del procedimiento" maxlength="120" />
 
         <div class="word-meta-row">
-
-          <!-- Categoría: desplegable + campo nueva categoría -->
           <div class="word-meta-field">
             <label for="categorySelect" class="word-meta-label">Categoría</label>
             <div class="cat-field-wrap">
@@ -95,14 +90,8 @@
                 <option value="" disabled selected>Cargando…</option>
               </select>
               <div id="newCatWrap" class="new-cat-wrap" hidden>
-                <input
-                  type="text"
-                  id="categoryNew"
-                  class="word-meta-input new-cat-input"
-                  placeholder="Nombre de la nueva categoría…"
-                  maxlength="60"
-                  autocomplete="off"
-                />
+                <input type="text" id="categoryNew" class="word-meta-input new-cat-input"
+                       placeholder="Nombre de la nueva categoría…" maxlength="60" autocomplete="off" />
                 <button type="button" id="cancelNewCat" class="new-cat-cancel" title="Cancelar">✕</button>
               </div>
             </div>
@@ -112,32 +101,57 @@
             <label for="documentUrl" class="word-meta-label">URL documento externo</label>
             <input type="text" id="documentUrl" class="word-meta-input" placeholder="https://…" />
           </div>
-
         </div>
       </div>
 
       <div class="word-page-divider"></div>
 
+      <!-- Descripción -->
       <div class="word-page-section">
         <p class="word-section-label">Descripción breve</p>
-        <textarea
-          id="description"
-          class="word-description-input"
-          rows="3"
-          placeholder="Resume en pocas líneas de qué trata este procedimiento…"
-        ></textarea>
+        <textarea id="description" class="word-description-input" rows="3"
+                  placeholder="Resume en pocas líneas de qué trata este procedimiento…"></textarea>
       </div>
 
       <div class="word-page-divider"></div>
 
+      <!-- Pasos -->
       <div class="word-page-section">
-        <p class="word-section-label">Pasos del procedimiento</p>
+        <div class="steps-label-row">
+          <p class="word-section-label">Pasos del procedimiento</p>
+
+          <!-- Botón importar PDF -->
+          <label for="pdfInput" class="pdf-import-btn" id="pdfBtnLabel">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            Importar PDF
+          </label>
+          <input type="file" id="pdfInput" accept="application/pdf" hidden />
+        </div>
+
+        <!-- Barra de progreso (oculta hasta que se use) -->
+        <div id="pdfProgress" class="pdf-progress" hidden>
+          <div class="pdf-progress-bar">
+            <div class="pdf-progress-fill" id="pdfProgressFill"></div>
+          </div>
+          <span id="pdfProgressText" class="pdf-progress-text">Leyendo PDF…</span>
+        </div>
+
         <div id="stepsEditor" class="word-quill-editor"></div>
-        <p class="word-editor-hint">Escribe, pega texto con formato e imágenes directamente en el editor.</p>
+        <p class="word-editor-hint">
+          Escribe directamente, pega texto con formato e imágenes,
+          o importa un PDF para extraer su texto automáticamente.
+        </p>
       </div>
+
     </div>
   </main>
 
+  <!-- PDF.js — extracción local, sin APIs externas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
   <script type="module" src="./js/new-procedure.js"></script>
 </body>
