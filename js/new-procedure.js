@@ -5,12 +5,16 @@ import { initThemeToggle } from "./theme.js";
 
 initThemeToggle("themeBtn");
 
-/* ── PDF.js worker ── */
-// Necesario para que PDF.js funcione en el navegador sin bloquear la UI
+/* ── PDF.js: apunta al worker en el mismo CDN ── */
 if (typeof pdfjsLib !== "undefined") {
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 }
+
+/* ── Configuración de renderizado ── */
+const PDF_SCALE   = 2.0;   // Resolución (2x = ~144 DPI, nítido en pantalla)
+const JPEG_Q      = 0.88;  // Calidad JPEG 0-1 (0.88 equilibra calidad/tamaño)
+const PAGE_WARN   = 8;     // Aviso si el PDF tiene más páginas que esto
 
 /* ── DOM ── */
 const logoutBtn        = document.getElementById("logoutBtn");
@@ -117,232 +121,210 @@ function isEditorEmpty() {
 }
 
 /* ══════════════════════════════════════════════════════
-   PDF IMPORT — extracción local con PDF.js
+   PDF IMPORT — renderizado de páginas como imágenes
 ══════════════════════════════════════════════════════ */
 
-/** Actualiza la barra de progreso (0-100) */
 function setProgress(pct, label) {
-  pdfProgressFill.style.width = `${pct}%`;
-  if (label) pdfProgressText.textContent = label;
+  if (pdfProgressFill) pdfProgressFill.style.width = `${pct}%`;
+  if (pdfProgressText && label) pdfProgressText.textContent = label;
 }
 
-/** Extrae el texto de un PDF página a página usando PDF.js */
-async function extractTextFromPdf(file) {
+/**
+ * Renderiza cada página del PDF en un <canvas> y la devuelve
+ * como Data URL JPEG. Preserva exactamente el aspecto visual:
+ * texto, imágenes embebidas, tablas, colores, etc.
+ */
+async function renderPdfAsImages(file) {
   if (typeof pdfjsLib === "undefined") {
-    throw new Error("PDF.js no está disponible. Comprueba la conexión a internet.");
+    throw new Error("PDF.js no está disponible. Comprueba la conexión.");
   }
 
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+
+  /* Progreso de carga del propio PDF */
+  loadingTask.onProgress = ({ loaded, total }) => {
+    if (total > 0) {
+      setProgress(Math.round((loaded / total) * 15), "Cargando PDF…");
+    }
+  };
+
+  const pdf = await loadingTask.promise;
   const totalPages = pdf.numPages;
 
-  const pageBlocks = [];
+  /* Aviso si el PDF es muy largo */
+  if (totalPages > PAGE_WARN) {
+    const ok = confirm(
+      `Este PDF tiene ${totalPages} páginas.\n\n` +
+      `Importar muchas páginas genera imágenes pesadas que podrían ` +
+      `superar el límite de almacenamiento por procedimiento.\n\n` +
+      `¿Continuar de todas formas?`
+    );
+    if (!ok) return null;
+  }
+
+  const pageImages = [];
 
   for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+    /* Progreso: páginas representan del 15 % al 95 % */
     setProgress(
-      Math.round((pageNum / totalPages) * 85),
-      `Procesando página ${pageNum} de ${totalPages}…`
+      15 + Math.round(((pageNum - 1) / totalPages) * 80),
+      `Renderizando página ${pageNum} de ${totalPages}…`
     );
 
-    const page        = await pdf.getPage(pageNum);
-    const textContent = await page.getTextContent();
+    const page = await pdf.getPage(pageNum);
 
-    if (textContent.items.length === 0) continue;
+    /* Viewport escalado para mayor resolución */
+    const viewport = page.getViewport({ scale: PDF_SCALE });
 
-    /* Agrupar items en líneas por posición Y (redondeada a 1 decimal) */
-    const lineMap = new Map();
+    const canvas = document.createElement("canvas");
+    canvas.width  = viewport.width;
+    canvas.height = viewport.height;
 
-    textContent.items.forEach(item => {
-      if (!item.str) return;
-      const y = Math.round(item.transform[5] * 10) / 10;
-      if (!lineMap.has(y)) lineMap.set(y, []);
-      lineMap.get(y).push(item);
+    const ctx = canvas.getContext("2d");
+
+    /* Fondo blanco explícito (PDFs con fondo transparente) */
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    /* Convertir a JPEG para reducir tamaño */
+    pageImages.push({
+      dataUrl : canvas.toDataURL("image/jpeg", JPEG_Q),
+      width   : viewport.width,
+      height  : viewport.height,
     });
 
-    /* Ordenar líneas de arriba a abajo (Y mayor = más arriba en PDF) */
-    const sortedYs = [...lineMap.keys()].sort((a, b) => b - a);
-
-    const lines = sortedYs.map(y => {
-      const items = lineMap.get(y).sort((a, b) => a.transform[4] - b.transform[4]);
-      return items.map(i => i.str).join(" ").trim();
-    }).filter(l => l.length > 0);
-
-    if (lines.length > 0) {
-      pageBlocks.push({ page: pageNum, lines });
-    }
+    /* Liberar memoria del canvas */
+    canvas.width = 0;
+    canvas.height = 0;
   }
 
-  return pageBlocks;
+  return pageImages;
 }
 
-/** Convierte los bloques de texto en HTML estructurado para Quill */
-function blocksToHtml(pageBlocks) {
-  if (pageBlocks.length === 0) return "";
-
-  const allLines = pageBlocks.flatMap(block => block.lines);
-
-  /* Heurística sencilla: línea es título si es corta, está en mayúsculas
-     o va seguida de un salto de párrafo */
-  const htmlParts = [];
-  let i = 0;
-
-  while (i < allLines.length) {
-    const line = allLines[i];
-    const next = allLines[i + 1] || "";
-
-    const isShort        = line.length < 80;
-    const isAllCaps      = line === line.toUpperCase() && /[A-ZÁÉÍÓÚÑ]/.test(line);
-    const nextIsEmpty    = next.trim() === "";
-    const prevIsEmpty    = i === 0 || allLines[i - 1].trim() === "";
-    const looksLikeTitle = isShort && (isAllCaps || (prevIsEmpty && nextIsEmpty));
-
-    if (looksLikeTitle && line.length > 2) {
-      htmlParts.push(`<h3>${escHtml(line)}</h3>`);
-    } else if (line.trim() === "") {
-      /* línea vacía → separador entre párrafos, ya manejado implícitamente */
-    } else {
-      /* Detectar si la línea es item de lista (empieza por -, •, *, número+punto) */
-      const bulletMatch = line.match(/^[-•*]\s+(.+)/);
-      const numMatch    = line.match(/^(\d+)[.)]\s+(.+)/);
-
-      if (bulletMatch) {
-        htmlParts.push(`<ul><li>${escHtml(bulletMatch[1])}</li></ul>`);
-      } else if (numMatch) {
-        htmlParts.push(`<ol><li>${escHtml(numMatch[2])}</li></ol>`);
-      } else {
-        htmlParts.push(`<p>${escHtml(line)}</p>`);
-      }
-    }
-
-    i++;
-  }
-
-  /* Fusionar listas consecutivas del mismo tipo */
-  return mergeConsecutiveLists(htmlParts.join(""));
+/**
+ * Construye el HTML que se insertará en Quill:
+ * cada página es una imagen con su ancho natural limitado al 100 %.
+ */
+function pagesToHtml(pageImages) {
+  return pageImages
+    .map(({ dataUrl }, i) => {
+      const alt = `Página ${i + 1}`;
+      return `<p><img src="${dataUrl}" alt="${alt}" style="max-width:100%;display:block;border-radius:4px;box-shadow:0 2px 10px rgba(0,0,0,0.08);margin:0 auto 12px;" /></p>`;
+    })
+    .join("\n");
 }
 
-/** Une <ul><li>…</li></ul><ul><li>…</li></ul> en una sola <ul> */
-function mergeConsecutiveLists(html) {
-  return html
-    .replace(/<\/ul>\s*<ul>/g, "")
-    .replace(/<\/ol>\s*<ol>/g, "");
-}
-
-function escHtml(str) {
-  return str
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
-}
-
-/** Orquesta la importación completa */
+/* ── Orquestador principal ── */
 async function handlePdfImport(file) {
   if (!file || file.type !== "application/pdf") {
     showSaveMessage("El archivo seleccionado no es un PDF válido.", true);
     return;
   }
 
-  if (file.size > 30 * 1024 * 1024) {
-    showSaveMessage("El PDF es demasiado grande (máximo 30 MB).", true);
+  if (file.size > 50 * 1024 * 1024) {
+    showSaveMessage("El PDF supera los 50 MB. Usa un PDF más pequeño.", true);
     return;
   }
 
   /* UI: inicio */
-  pdfBtnLabel.classList.add("pdf-import-btn--loading");
-  pdfBtnLabel.setAttribute("aria-disabled", "true");
+  setPdfBusy(true);
   pdfProgress.hidden = false;
-  setProgress(0, "Cargando PDF…");
+  setProgress(0, "Preparando…");
 
   try {
-    const pageBlocks = await extractTextFromPdf(file);
+    const pageImages = await renderPdfAsImages(file);
 
-    setProgress(90, "Generando contenido…");
-
-    if (pageBlocks.length === 0) {
-      showSaveMessage(
-        "No se encontró texto en el PDF. Es posible que sea un PDF de imágenes escaneadas sin OCR.",
-        true
-      );
+    if (pageImages === null) {
+      /* Usuario canceló el aviso de páginas */
       return;
     }
 
-    const html = blocksToHtml(pageBlocks);
-    setProgress(100, "¡Listo!");
-
-    /* Insertar en Quill — si el editor tiene contenido, añadir al final */
-    const currentContent = quill.root.innerHTML.trim();
-    const isEmpty = isEditorEmpty();
-
-    if (isEmpty) {
-      quill.clipboard.dangerouslyPasteHTML(html);
-    } else {
-      /* Añadir separador + nuevo contenido al final */
-      const combined = currentContent + "<p><br></p><hr><p><br></p>" + html;
-      quill.clipboard.dangerouslyPasteHTML(combined);
+    if (pageImages.length === 0) {
+      showSaveMessage("El PDF no tiene páginas renderizables.", true);
+      return;
     }
 
-    /* Autocompletar título si está vacío */
+    setProgress(95, "Insertando en el editor…");
+
+    const html = pagesToHtml(pageImages);
+
+    /* Si el editor ya tiene contenido, añadir al final con separador */
+    if (isEditorEmpty()) {
+      quill.clipboard.dangerouslyPasteHTML(html);
+    } else {
+      const current = quill.root.innerHTML;
+      quill.clipboard.dangerouslyPasteHTML(
+        current + `<p><br></p><p style="text-align:center;color:#82a8c2;font-size:12px;">— PDF importado —</p>` + html
+      );
+    }
+
+    setProgress(100, "¡Listo!");
+
+    /* Autocompletar título si estaba vacío */
     if (titleInput && !titleInput.value.trim()) {
-      const nameWithoutExt = file.name.replace(/\.pdf$/i, "").replace(/[-_]/g, " ");
-      titleInput.value = nameWithoutExt.charAt(0).toUpperCase() + nameWithoutExt.slice(1);
+      const name = file.name.replace(/\.pdf$/i, "").replace(/[-_]/g, " ");
+      titleInput.value = name.charAt(0).toUpperCase() + name.slice(1);
       docNameDisplay.textContent = titleInput.value;
     }
 
-    const pages = pageBlocks.length;
+    const n = pageImages.length;
     showSaveMessage(
-      `PDF importado correctamente (${pages} página${pages !== 1 ? "s" : ""}).`,
+      `PDF importado con formato e imágenes (${n} página${n !== 1 ? "s" : ""}).`,
       false
     );
 
   } catch (err) {
-    console.error("Error al leer el PDF:", err);
-    showSaveMessage(`Error al leer el PDF: ${err.message}`, true);
+    console.error("Error al importar PDF:", err);
+    showSaveMessage(`Error al importar el PDF: ${err.message}`, true);
   } finally {
-    /* UI: fin */
-    pdfBtnLabel.classList.remove("pdf-import-btn--loading");
-    pdfBtnLabel.removeAttribute("aria-disabled");
-    setTimeout(() => { pdfProgress.hidden = true; setProgress(0, ""); }, 1800);
-    /* Reset input para permitir subir el mismo archivo otra vez */
-    pdfInput.value = "";
+    setPdfBusy(false);
+    setTimeout(() => {
+      pdfProgress.hidden = true;
+      setProgress(0, "");
+    }, 2000);
+    pdfInput.value = ""; /* Permite re-importar el mismo archivo */
   }
 }
 
-/* Escuchar selección de archivo */
+function setPdfBusy(busy) {
+  if (!pdfBtnLabel) return;
+  pdfBtnLabel.classList.toggle("pdf-import-btn--loading", busy);
+  pdfBtnLabel.setAttribute("aria-disabled", busy ? "true" : "false");
+}
+
+/* ── File input ── */
 pdfInput?.addEventListener("change", () => {
   if (pdfInput.files[0]) handlePdfImport(pdfInput.files[0]);
 });
 
-/* ══════════════════════════════════════════════════════
-   DRAG & DROP sobre la zona del editor
-══════════════════════════════════════════════════════ */
-const editorContainer = document.getElementById("stepsEditor");
+/* ── Drag & drop sobre el editor ── */
+const editorEl = document.getElementById("stepsEditor");
 
-function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+function prevent(e) { e.preventDefault(); e.stopPropagation(); }
 
-["dragenter", "dragover"].forEach(evt =>
-  editorContainer?.addEventListener(evt, e => {
-    preventDefaults(e);
-    if (e.dataTransfer?.types?.includes("Files")) {
-      editorContainer.classList.add("pdf-dragover");
-    }
+["dragenter", "dragover"].forEach(ev =>
+  editorEl?.addEventListener(ev, e => {
+    prevent(e);
+    if (e.dataTransfer?.types?.includes("Files"))
+      editorEl.classList.add("pdf-dragover");
   })
 );
 
-["dragleave", "drop"].forEach(evt =>
-  editorContainer?.addEventListener(evt, e => {
-    preventDefaults(e);
-    editorContainer.classList.remove("pdf-dragover");
+["dragleave", "drop"].forEach(ev =>
+  editorEl?.addEventListener(ev, e => {
+    prevent(e);
+    editorEl.classList.remove("pdf-dragover");
   })
 );
 
-editorContainer?.addEventListener("drop", e => {
-  preventDefaults(e);
-  editorContainer.classList.remove("pdf-dragover");
-  const file = e.dataTransfer?.files?.[0];
-  if (file?.type === "application/pdf") {
-    handlePdfImport(file);
-  }
+editorEl?.addEventListener("drop", e => {
+  prevent(e);
+  editorEl.classList.remove("pdf-dragover");
+  const f = e.dataTransfer?.files?.[0];
+  if (f?.type === "application/pdf") handlePdfImport(f);
 });
 
 /* ══════════════════════════════════════════════════════
@@ -372,29 +354,25 @@ async function handleSave() {
     showSaveMessage("El título es obligatorio.", true);
     titleInput?.focus(); return;
   }
-
   if (!category) {
     showSaveMessage(
       categorySelect.value === NEW_VALUE
         ? "Escribe el nombre de la nueva categoría."
-        : "Selecciona una categoría.",
-      true
+        : "Selecciona una categoría.", true
     );
     categorySelect.value === NEW_VALUE ? categoryNew.focus() : categorySelect.focus();
     return;
   }
-
   if (!description) {
     showSaveMessage("La descripción es obligatoria.", true);
     document.getElementById("description")?.focus(); return;
   }
-
   if (isEditorEmpty()) {
     showSaveMessage("Los pasos son obligatorios.", true); return;
   }
 
   if (saveProcedureBtn) {
-    saveProcedureBtn.disabled = true;
+    saveProcedureBtn.disabled    = true;
     saveProcedureBtn.textContent = "Guardando…";
   }
 
