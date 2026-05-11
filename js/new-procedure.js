@@ -5,16 +5,13 @@ import { initThemeToggle } from "./theme.js";
 
 initThemeToggle("themeBtn");
 
-/* ── PDF.js: apunta al worker en el mismo CDN ── */
+/* ── PDF.js worker ── */
 if (typeof pdfjsLib !== "undefined") {
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 }
 
-/* ── Configuración de renderizado ── */
-const PDF_SCALE   = 2.0;   // Resolución (2x = ~144 DPI, nítido en pantalla)
-const JPEG_Q      = 0.88;  // Calidad JPEG 0-1 (0.88 equilibra calidad/tamaño)
-const PAGE_WARN   = 8;     // Aviso si el PDF tiene más páginas que esto
+const PAGE_WARN = 10; // Aviso si el PDF supera N páginas
 
 /* ── DOM ── */
 const logoutBtn        = document.getElementById("logoutBtn");
@@ -23,12 +20,10 @@ const currentUserBox   = document.getElementById("currentUser");
 const docNameDisplay   = document.getElementById("docNameDisplay");
 const titleInput       = document.getElementById("title");
 const saveMessage      = document.getElementById("saveMessage");
-
 const categorySelect   = document.getElementById("categorySelect");
 const newCatWrap       = document.getElementById("newCatWrap");
 const categoryNew      = document.getElementById("categoryNew");
 const cancelNewCat     = document.getElementById("cancelNewCat");
-
 const pdfInput         = document.getElementById("pdfInput");
 const pdfBtnLabel      = document.getElementById("pdfBtnLabel");
 const pdfProgress      = document.getElementById("pdfProgress");
@@ -38,39 +33,30 @@ const pdfProgressText  = document.getElementById("pdfProgressText");
 const NEW_VALUE = "__new__";
 
 /* ══════════════════════════════════════════════════════
-   CATEGORY SELECT
+   CATEGORIES
 ══════════════════════════════════════════════════════ */
 async function loadCategories() {
   const result = await getProcedures();
   const categories = new Set();
-
   if (result.ok) {
-    result.data.forEach(p => {
-      const cat = (p.category || "").trim();
-      if (cat) categories.add(cat);
-    });
+    result.data.forEach(p => { const c = (p.category || "").trim(); if (c) categories.add(c); });
   }
-
   const sorted = [...categories].sort((a, b) => a.localeCompare(b, "es"));
   categorySelect.innerHTML = "";
-
-  const placeholder = document.createElement("option");
-  placeholder.value = ""; placeholder.disabled = true; placeholder.selected = true;
-  placeholder.textContent = "Selecciona una categoría…";
-  categorySelect.appendChild(placeholder);
-
+  const ph = document.createElement("option");
+  ph.value = ""; ph.disabled = true; ph.selected = true;
+  ph.textContent = "Selecciona una categoría…";
+  categorySelect.appendChild(ph);
   sorted.forEach(cat => {
     const opt = document.createElement("option");
     opt.value = cat; opt.textContent = cat;
     categorySelect.appendChild(opt);
   });
-
   if (sorted.length > 0) {
     const sep = document.createElement("option");
     sep.disabled = true; sep.textContent = "──────────────";
     categorySelect.appendChild(sep);
   }
-
   const newOpt = document.createElement("option");
   newOpt.value = NEW_VALUE; newOpt.textContent = "+ Nueva categoría…";
   categorySelect.appendChild(newOpt);
@@ -78,22 +64,15 @@ async function loadCategories() {
 
 categorySelect.addEventListener("change", () => {
   if (categorySelect.value === NEW_VALUE) {
-    newCatWrap.hidden = false;
-    categoryNew.value = ""; categoryNew.focus();
-  } else {
-    newCatWrap.hidden = true; categoryNew.value = "";
-  }
+    newCatWrap.hidden = false; categoryNew.value = ""; categoryNew.focus();
+  } else { newCatWrap.hidden = true; categoryNew.value = ""; }
 });
-
 cancelNewCat.addEventListener("click", () => {
   newCatWrap.hidden = true; categoryNew.value = "";
   categorySelect.options[0].selected = true;
 });
-
 function getCategory() {
-  return categorySelect.value === NEW_VALUE
-    ? categoryNew.value.trim()
-    : categorySelect.value.trim();
+  return categorySelect.value === NEW_VALUE ? categoryNew.value.trim() : categorySelect.value.trim();
 }
 
 /* ══════════════════════════════════════════════════════
@@ -113,166 +92,323 @@ const quill = new Quill("#stepsEditor", {
   placeholder: "Escribe aquí los pasos del procedimiento…",
   modules: { toolbar: "#quillToolbar" }
 });
-
 initImageResizer(quill);
-
 function isEditorEmpty() {
   return !quill.getText().trim() && !quill.root.querySelector("img");
 }
 
 /* ══════════════════════════════════════════════════════
-   PDF IMPORT — renderizado de páginas como imágenes
+   PROGRESS BAR
 ══════════════════════════════════════════════════════ */
-
 function setProgress(pct, label) {
   if (pdfProgressFill) pdfProgressFill.style.width = `${pct}%`;
   if (pdfProgressText && label) pdfProgressText.textContent = label;
 }
 
-/**
- * Renderiza cada página del PDF en un <canvas> y la devuelve
- * como Data URL JPEG. Preserva exactamente el aspecto visual:
- * texto, imágenes embebidas, tablas, colores, etc.
- */
-async function renderPdfAsImages(file) {
-  if (typeof pdfjsLib === "undefined") {
-    throw new Error("PDF.js no está disponible. Comprueba la conexión.");
-  }
+/* ══════════════════════════════════════════════════════
+   PDF HELPERS
+══════════════════════════════════════════════════════ */
 
-  const arrayBuffer = await file.arrayBuffer();
-  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+function escHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+}
 
-  /* Progreso de carga del propio PDF */
-  loadingTask.onProgress = ({ loaded, total }) => {
-    if (total > 0) {
-      setProgress(Math.round((loaded / total) * 15), "Cargando PDF…");
-    }
+/** Detecta negrita e italica del nombre de fuente PDF */
+function parseFontStyle(fontName = "", fontFamily = "") {
+  const s = (fontName + " " + fontFamily).toLowerCase();
+  return {
+    bold:   /bold|heavy|black|semibold|demibold/.test(s),
+    italic: /italic|oblique|slanted/.test(s),
   };
+}
 
-  const pdf = await loadingTask.promise;
-  const totalPages = pdf.numPages;
+/** Aplica <strong> y <em> */
+function applyStyle(text, { bold, italic }) {
+  if (!text) return "";
+  let out = escHtml(text);
+  if (italic) out = `<em>${out}</em>`;
+  if (bold)   out = `<strong>${out}</strong>`;
+  return out;
+}
 
-  /* Aviso si el PDF es muy largo */
-  if (totalPages > PAGE_WARN) {
-    const ok = confirm(
-      `Este PDF tiene ${totalPages} páginas.\n\n` +
-      `Importar muchas páginas genera imágenes pesadas que podrían ` +
-      `superar el límite de almacenamiento por procedimiento.\n\n` +
-      `¿Continuar de todas formas?`
-    );
-    if (!ok) return null;
+/**
+ * Multiplica dos matrices de transformación 2D (formato PDF: [a,b,c,d,e,f]).
+ */
+function mulMatrix(a, b) {
+  return [
+    a[0]*b[0] + a[2]*b[1],
+    a[1]*b[0] + a[3]*b[1],
+    a[0]*b[2] + a[2]*b[3],
+    a[1]*b[2] + a[3]*b[3],
+    a[0]*b[4] + a[2]*b[5] + a[4],
+    a[1]*b[4] + a[3]*b[5] + a[5],
+  ];
+}
+
+/**
+ * Recorre la lista de operadores de la página y devuelve un Map:
+ * nombre_imagen → { y, x, w, h } en coordenadas PDF.
+ * También devuelve la lista de operaciones de imagen en orden de aparición
+ * (preservando el orden correcto en el documento).
+ */
+function getImagePositions(opList) {
+  const OPS       = pdfjsLib.OPS;
+  const positions = new Map(); // name → {x, y, w, h}
+  const order     = [];        // [{name, y}] en orden de aparición
+
+  const matrixStack = [];
+  let ctm = [1, 0, 0, 1, 0, 0];
+
+  for (let i = 0; i < opList.fnArray.length; i++) {
+    const fn   = opList.fnArray[i];
+    const args = opList.argsArray[i];
+
+    if (fn === OPS.save) {
+      matrixStack.push([...ctm]);
+    } else if (fn === OPS.restore) {
+      ctm = matrixStack.pop() ?? [1, 0, 0, 1, 0, 0];
+    } else if (fn === OPS.transform) {
+      ctm = mulMatrix(ctm, args);
+    } else if (fn === OPS.setTransform) {
+      ctm = [...args];
+    } else if (
+      fn === OPS.paintImageXObject ||
+      fn === OPS.paintImageXObjectRepeat
+    ) {
+      const name = args[0];
+      if (typeof name === "string" && !positions.has(name)) {
+        const pos = { x: ctm[4], y: ctm[5], w: Math.abs(ctm[0]), h: Math.abs(ctm[3]) };
+        positions.set(name, pos);
+        order.push({ name, y: pos.y });
+      }
+    }
   }
 
-  const pageImages = [];
+  return { positions, order };
+}
 
-  for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-    /* Progreso: páginas representan del 15 % al 95 % */
-    setProgress(
-      15 + Math.round(((pageNum - 1) / totalPages) * 80),
-      `Renderizando página ${pageNum} de ${totalPages}…`
-    );
+/**
+ * Pide un objeto de página a PDF.js (promesa con timeout).
+ */
+function getPageObj(page, name, timeoutMs = 6000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("timeout")), timeoutMs);
+    try {
+      page.objs.get(name, data => { clearTimeout(timer); resolve(data); });
+    } catch (e) { clearTimeout(timer); reject(e); }
+  });
+}
 
-    const page = await pdf.getPage(pageNum);
-
-    /* Viewport escalado para mayor resolución */
-    const viewport = page.getViewport({ scale: PDF_SCALE });
+/**
+ * Convierte los datos de imagen de PDF.js (kind 1/2/3) a Data URL JPEG.
+ */
+function imgDataToUrl(imgData) {
+  try {
+    const { width, height, data, kind } = imgData;
+    if (!width || !height || !data) return null;
 
     const canvas = document.createElement("canvas");
-    canvas.width  = viewport.width;
-    canvas.height = viewport.height;
-
+    canvas.width = width; canvas.height = height;
     const ctx = canvas.getContext("2d");
 
-    /* Fondo blanco explícito (PDFs con fondo transparente) */
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const rgba = new Uint8ClampedArray(width * height * 4);
 
-    await page.render({ canvasContext: ctx, viewport }).promise;
+    if (kind === 3) {       // RGBA
+      rgba.set(data);
+    } else if (kind === 2) { // RGB
+      for (let i = 0; i < width * height; i++) {
+        rgba[i*4]   = data[i*3];
+        rgba[i*4+1] = data[i*3+1];
+        rgba[i*4+2] = data[i*3+2];
+        rgba[i*4+3] = 255;
+      }
+    } else if (kind === 1) { // Grayscale
+      for (let i = 0; i < width * height; i++) {
+        rgba[i*4] = rgba[i*4+1] = rgba[i*4+2] = data[i];
+        rgba[i*4+3] = 255;
+      }
+    } else { return null; }
 
-    /* Convertir a JPEG para reducir tamaño */
-    pageImages.push({
-      dataUrl : canvas.toDataURL("image/jpeg", JPEG_Q),
-      width   : viewport.width,
-      height  : viewport.height,
-    });
-
-    /* Liberar memoria del canvas */
-    canvas.width = 0;
-    canvas.height = 0;
-  }
-
-  return pageImages;
+    ctx.putImageData(new ImageData(rgba, width, height), 0, 0);
+    const url = canvas.toDataURL("image/jpeg", 0.88);
+    canvas.width = 0; canvas.height = 0; // liberar memoria
+    return url;
+  } catch { return null; }
 }
+
+/* ══════════════════════════════════════════════════════
+   EXTRACCIÓN PRINCIPAL POR PÁGINA
+══════════════════════════════════════════════════════ */
 
 /**
- * Construye el HTML que se insertará en Quill:
- * cada página es una imagen con su ancho natural limitado al 100 %.
+ * Extrae el contenido de una página: texto con formato + imágenes embebidas,
+ * todo ordenado por posición vertical (Y) para respetar el orden original.
+ *
+ * Devuelve HTML para insertar en Quill.
  */
-function pagesToHtml(pageImages) {
-  return pageImages
-    .map(({ dataUrl }, i) => {
-      const alt = `Página ${i + 1}`;
-      return `<p><img src="${dataUrl}" alt="${alt}" style="max-width:100%;display:block;border-radius:4px;box-shadow:0 2px 10px rgba(0,0,0,0.08);margin:0 auto 12px;" /></p>`;
-    })
-    .join("\n");
+async function extractPageContent(page) {
+  /* ── 1. Texto ── */
+  const textContent = await page.getTextContent();
+  const { items, styles } = textContent;
+
+  /* ── 2. Lista de operadores + posiciones de imagen ── */
+  const opList = await page.getOperatorList();
+  const { positions: imgPositions, order: imgOrder } = getImagePositions(opList);
+
+  /* ── 3. Calcular altura media de fuente (para detectar headings) ── */
+  const fontHeights = items.filter(i => i.str.trim()).map(i => i.height);
+  const avgFontH    = fontHeights.length
+    ? fontHeights.reduce((a, b) => a + b, 0) / fontHeights.length
+    : 12;
+
+  /* ── 4. Agrupar items de texto en líneas por Y ── */
+  const lineMap = new Map();
+  items.forEach(item => {
+    if (!item.str) return;
+    // Redondear Y a 0.5 para agrupar items en la misma línea
+    const y = Math.round(item.transform[5] * 2) / 2;
+    if (!lineMap.has(y)) lineMap.set(y, []);
+    lineMap.get(y).push(item);
+  });
+
+  /* ── 5. Construir lista unificada: {y, html} ── */
+  const contentBlocks = []; // {y: number, html: string}
+
+  /* 5a. Bloques de texto */
+  for (const [y, lineItems] of lineMap) {
+    const sorted = lineItems.sort((a, b) => a.transform[4] - b.transform[4]);
+    const lineText = sorted.map(i => i.str).join("").trim();
+    if (!lineText) continue;
+
+    const maxH      = Math.max(...sorted.map(i => i.height));
+    const isH2      = maxH > avgFontH * 2.0;
+    const isH3      = maxH > avgFontH * 1.4 && !isH2;
+    const isHeading = isH2 || isH3;
+
+    /* Construir HTML del segmento con formato */
+    let segHtml = "";
+    for (const item of sorted) {
+      if (!item.str) continue;
+      const style = parseFontStyle(item.fontName, styles[item.fontName]?.fontFamily ?? "");
+      segHtml += applyStyle(item.str, isHeading ? { bold: false, italic: false } : style);
+    }
+    segHtml = segHtml.trim();
+    if (!segHtml) continue;
+
+    /* Detectar listas */
+    const bulletM = lineText.match(/^[-•*·]\s+(.+)/);
+    const numM    = lineText.match(/^(\d+)[.)]\s+(.+)/);
+
+    let html;
+    if (isH2)         html = `<h2>${segHtml}</h2>`;
+    else if (isH3)    html = `<h3>${segHtml}</h3>`;
+    else if (bulletM) html = `<ul><li>${escHtml(bulletM[1])}</li></ul>`;
+    else if (numM)    html = `<ol><li>${escHtml(numM[2])}</li></ol>`;
+    else              html = `<p>${segHtml}</p>`;
+
+    contentBlocks.push({ y, html });
+  }
+
+  /* 5b. Bloques de imagen (extraer datos de page.objs) */
+  for (const { name, y } of imgOrder) {
+    try {
+      const imgData = await getPageObj(page, name);
+      if (!imgData?.data || imgData.width <= 10 || imgData.height <= 10) continue;
+      const url = imgDataToUrl(imgData);
+      if (!url) continue;
+      contentBlocks.push({
+        y,
+        html: `<p><img src="${url}" style="max-width:100%;display:block;margin:8px 0;border-radius:4px;" /></p>`,
+      });
+    } catch { /* imagen no disponible, omitir */ }
+  }
+
+  /* ── 6. Ordenar de arriba abajo (Y mayor = más arriba en PDF) ── */
+  contentBlocks.sort((a, b) => b.y - a.y);
+
+  /* ── 7. Ensamblar HTML y fusionar listas adyacentes ── */
+  let html = contentBlocks.map(b => b.html).join("");
+  html = html.replace(/<\/ul>\s*<ul>/g, "").replace(/<\/ol>\s*<ol>/g, "");
+  return html;
 }
 
-/* ── Orquestador principal ── */
+/* ══════════════════════════════════════════════════════
+   ORQUESTADOR DE IMPORTACIÓN
+══════════════════════════════════════════════════════ */
 async function handlePdfImport(file) {
   if (!file || file.type !== "application/pdf") {
-    showSaveMessage("El archivo seleccionado no es un PDF válido.", true);
-    return;
+    showSaveMessage("El archivo seleccionado no es un PDF válido.", true); return;
   }
-
   if (file.size > 50 * 1024 * 1024) {
-    showSaveMessage("El PDF supera los 50 MB. Usa un PDF más pequeño.", true);
-    return;
+    showSaveMessage("El PDF supera los 50 MB. Usa un PDF más pequeño.", true); return;
   }
 
-  /* UI: inicio */
   setPdfBusy(true);
   pdfProgress.hidden = false;
-  setProgress(0, "Preparando…");
+  setProgress(0, "Cargando PDF…");
 
   try {
-    const pageImages = await renderPdfAsImages(file);
+    if (typeof pdfjsLib === "undefined") throw new Error("PDF.js no está disponible.");
 
-    if (pageImages === null) {
-      /* Usuario canceló el aviso de páginas */
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf         = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const totalPages  = pdf.numPages;
+
+    if (totalPages > PAGE_WARN) {
+      const ok = confirm(
+        `Este PDF tiene ${totalPages} páginas.\n\n` +
+        `PDFs muy largos con imágenes pueden generar mucho contenido.\n` +
+        `¿Continuar de todas formas?`
+      );
+      if (!ok) return;
+    }
+
+    let fullHtml = "";
+
+    for (let n = 1; n <= totalPages; n++) {
+      setProgress(
+        Math.round(((n - 1) / totalPages) * 92),
+        `Procesando página ${n} de ${totalPages}…`
+      );
+      const page    = await pdf.getPage(n);
+      const pageHtml = await extractPageContent(page);
+
+      if (pageHtml.trim()) {
+        if (n > 1) fullHtml += `<p><br></p>`;
+        fullHtml += pageHtml;
+      }
+    }
+
+    setProgress(96, "Insertando en el editor…");
+
+    if (!fullHtml.trim()) {
+      showSaveMessage(
+        "No se encontró contenido extraíble. El PDF puede ser de imágenes escaneadas sin OCR.", true
+      );
       return;
     }
 
-    if (pageImages.length === 0) {
-      showSaveMessage("El PDF no tiene páginas renderizables.", true);
-      return;
-    }
-
-    setProgress(95, "Insertando en el editor…");
-
-    const html = pagesToHtml(pageImages);
-
-    /* Si el editor ya tiene contenido, añadir al final con separador */
     if (isEditorEmpty()) {
-      quill.clipboard.dangerouslyPasteHTML(html);
+      quill.clipboard.dangerouslyPasteHTML(fullHtml);
     } else {
       const current = quill.root.innerHTML;
       quill.clipboard.dangerouslyPasteHTML(
-        current + `<p><br></p><p style="text-align:center;color:#82a8c2;font-size:12px;">— PDF importado —</p>` + html
+        current + `<p><br></p><hr><p><br></p>` + fullHtml
       );
     }
 
-    setProgress(100, "¡Listo!");
-
-    /* Autocompletar título si estaba vacío */
+    /* Autocompletar título */
     if (titleInput && !titleInput.value.trim()) {
       const name = file.name.replace(/\.pdf$/i, "").replace(/[-_]/g, " ");
       titleInput.value = name.charAt(0).toUpperCase() + name.slice(1);
-      docNameDisplay.textContent = titleInput.value;
+      if (docNameDisplay) docNameDisplay.textContent = titleInput.value;
     }
 
-    const n = pageImages.length;
+    setProgress(100, "¡Listo!");
     showSaveMessage(
-      `PDF importado con formato e imágenes (${n} página${n !== 1 ? "s" : ""}).`,
+      `PDF importado con texto editable${fullHtml.includes("<img") ? " e imágenes" : ""} (${totalPages} página${totalPages !== 1 ? "s" : ""}).`,
       false
     );
 
@@ -281,48 +417,31 @@ async function handlePdfImport(file) {
     showSaveMessage(`Error al importar el PDF: ${err.message}`, true);
   } finally {
     setPdfBusy(false);
-    setTimeout(() => {
-      pdfProgress.hidden = true;
-      setProgress(0, "");
-    }, 2000);
-    pdfInput.value = ""; /* Permite re-importar el mismo archivo */
+    setTimeout(() => { pdfProgress.hidden = true; setProgress(0, ""); }, 2200);
+    pdfInput.value = "";
   }
 }
 
 function setPdfBusy(busy) {
   if (!pdfBtnLabel) return;
   pdfBtnLabel.classList.toggle("pdf-import-btn--loading", busy);
-  pdfBtnLabel.setAttribute("aria-disabled", busy ? "true" : "false");
+  pdfBtnLabel.setAttribute("aria-disabled", String(busy));
 }
 
-/* ── File input ── */
-pdfInput?.addEventListener("change", () => {
-  if (pdfInput.files[0]) handlePdfImport(pdfInput.files[0]);
-});
+/* ── File input & drag-and-drop ── */
+pdfInput?.addEventListener("change", () => { if (pdfInput.files[0]) handlePdfImport(pdfInput.files[0]); });
 
-/* ── Drag & drop sobre el editor ── */
 const editorEl = document.getElementById("stepsEditor");
-
-function prevent(e) { e.preventDefault(); e.stopPropagation(); }
-
-["dragenter", "dragover"].forEach(ev =>
-  editorEl?.addEventListener(ev, e => {
-    prevent(e);
-    if (e.dataTransfer?.types?.includes("Files"))
-      editorEl.classList.add("pdf-dragover");
-  })
-);
-
-["dragleave", "drop"].forEach(ev =>
-  editorEl?.addEventListener(ev, e => {
-    prevent(e);
-    editorEl.classList.remove("pdf-dragover");
-  })
-);
-
-editorEl?.addEventListener("drop", e => {
+const prevent  = e => { e.preventDefault(); e.stopPropagation(); };
+["dragenter","dragover"].forEach(ev => editorEl?.addEventListener(ev, e => {
   prevent(e);
-  editorEl.classList.remove("pdf-dragover");
+  if (e.dataTransfer?.types?.includes("Files")) editorEl.classList.add("pdf-dragover");
+}));
+["dragleave","drop"].forEach(ev => editorEl?.addEventListener(ev, e => {
+  prevent(e); editorEl.classList.remove("pdf-dragover");
+}));
+editorEl?.addEventListener("drop", e => {
+  prevent(e); editorEl.classList.remove("pdf-dragover");
   const f = e.dataTransfer?.files?.[0];
   if (f?.type === "application/pdf") handlePdfImport(f);
 });
@@ -350,31 +469,15 @@ async function handleSave() {
   const stepsHtml   = quill.root.innerHTML.trim();
   const documentUrl = document.getElementById("documentUrl")?.value.trim() || "";
 
-  if (!title) {
-    showSaveMessage("El título es obligatorio.", true);
-    titleInput?.focus(); return;
+  if (!title)       { showSaveMessage("El título es obligatorio.", true); titleInput?.focus(); return; }
+  if (!category)    {
+    showSaveMessage(categorySelect.value === NEW_VALUE ? "Escribe el nombre de la nueva categoría." : "Selecciona una categoría.", true);
+    categorySelect.value === NEW_VALUE ? categoryNew.focus() : categorySelect.focus(); return;
   }
-  if (!category) {
-    showSaveMessage(
-      categorySelect.value === NEW_VALUE
-        ? "Escribe el nombre de la nueva categoría."
-        : "Selecciona una categoría.", true
-    );
-    categorySelect.value === NEW_VALUE ? categoryNew.focus() : categorySelect.focus();
-    return;
-  }
-  if (!description) {
-    showSaveMessage("La descripción es obligatoria.", true);
-    document.getElementById("description")?.focus(); return;
-  }
-  if (isEditorEmpty()) {
-    showSaveMessage("Los pasos son obligatorios.", true); return;
-  }
+  if (!description) { showSaveMessage("La descripción es obligatoria.", true); document.getElementById("description")?.focus(); return; }
+  if (isEditorEmpty()) { showSaveMessage("Los pasos son obligatorios.", true); return; }
 
-  if (saveProcedureBtn) {
-    saveProcedureBtn.disabled    = true;
-    saveProcedureBtn.textContent = "Guardando…";
-  }
+  if (saveProcedureBtn) { saveProcedureBtn.disabled = true; saveProcedureBtn.textContent = "Guardando…"; }
 
   const result = await createProcedure({ title, category, description, stepsHtml, documentUrl });
 
@@ -383,8 +486,7 @@ async function handleSave() {
     if (saveProcedureBtn) {
       saveProcedureBtn.disabled = false;
       saveProcedureBtn.innerHTML = `
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
           <polyline points="17 21 17 13 7 13 7 21"/>
           <polyline points="7 3 7 8 15 8"/>
@@ -392,21 +494,15 @@ async function handleSave() {
     }
     return;
   }
-
   window.location.href = "./app.html";
 }
 
 saveProcedureBtn?.addEventListener("click", handleSave);
-
-/* ══════════════════════════════════════════════════════
-   LOGOUT / AUTH
-══════════════════════════════════════════════════════ */
 logoutBtn?.addEventListener("click", async () => {
   const result = await logoutUser();
   if (!result.ok) { alert(`Error al cerrar sesión: ${result.error}`); return; }
   window.location.href = "index.html";
 });
-
 watchAuthState((user) => {
   if (!user) { window.location.href = "index.html"; return; }
   if (currentUserBox) currentUserBox.textContent = user.email;
